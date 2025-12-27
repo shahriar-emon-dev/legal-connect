@@ -1,0 +1,152 @@
+.lawyerSearch {
+  min-height: calc(100vh - 160px);
+  padding: 2rem;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.filtersSection {
+  margin-bottom: 2rem;
+}
+
+.filtersCard {
+  padding: 1.5rem;
+}
+
+.searchBar {
+  margin-bottom: 1rem;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.filterInput {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.filterInput:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.results {
+  margin-top: 2rem;
+}
+
+.resultsCount {
+  margin-bottom: 1.5rem;
+  color: #7f8c8d;
+  font-size: 1.1rem;
+}
+
+.lawyersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.lawyerCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lawyerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.lawyerHeader h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+}
+
+.lawyerInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.specialization {
+  font-weight: 600;
+  color: #3498db;
+  font-size: 1.1rem;
+}
+
+.location,
+.experience {
+  color: #7f8c8d;
+}
+
+.price {
+  font-weight: 600;
+  color: #27ae60;
+  font-size: 1.1rem;
+}
+
+.bookButton {
+  width: 100%;
+  margin-top: auto;
+}
+
+.loading {
+  text-align: center;
+  padding: 4rem;
+  font-size: 1.2rem;
+  color: #7f8c8d;
+}
+
+.noResults {
+  text-align: center;
+  padding: 4rem;
+  color: #7f8c8d;
+}
+
+@media (max-width: 768px) {
+  .lawyerSearch {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .lawyersGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+

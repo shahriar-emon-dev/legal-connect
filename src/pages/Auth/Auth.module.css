@@ -1,0 +1,100 @@
+.authContainer {
+  min-height: calc(100vh - 160px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.authCard {
+  width: 100%;
+  max-width: 500px;
+}
+
+.authCard h2 {
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.subtitle {
+  text-align: center;
+  color: #7f8c8d;
+  margin-bottom: 2rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  font-weight: 500;
+  color: #34495e;
+}
+
+.formGroup input,
+.formGroup select {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.inputError {
+  border-color: #e74c3c !important;
+}
+
+.error {
+  color: #e74c3c;
+  font-size: 0.875rem;
+}
+
+.errorMessage {
+  background-color: #fee;
+  color: #e74c3c;
+  padding: 0.75rem;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.submitButton {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.select {
+  cursor: pointer;
+}
+
+.switchAuth {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #7f8c8d;
+}
+
+.switchAuth a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.switchAuth a:hover {
+  text-decoration: underline;
+}
+
+
