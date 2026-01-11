@@ -9,6 +9,8 @@ import LawyerSearch from './pages/LawyerSearch/LawyerSearch';
 import AppointmentBooking from './pages/AppointmentBooking/AppointmentBooking';
 import ClientDashboard from './pages/Dashboard/ClientDashboard';
 import LawyerDashboard from './pages/Dashboard/LawyerDashboard';
+import LawyerProfile from './pages/LawyerProfile/LawyerProfile';
+import ClientCommunicationPortal from './pages/ClientCommunicationPortal/ClientCommunicationPortal';
 import DocumentUpload from './pages/DocumentUpload/DocumentUpload';
 import Chat from './pages/Chat/Chat';
 import Contact from './pages/Contact/Contact';
@@ -31,6 +33,8 @@ function App() {
             <Route path="/book-appointment/:lawyerId?" element={<AppointmentBooking />} />
             <Route path="/client/dashboard" element={<ClientDashboard />} />
             <Route path="/lawyer/dashboard" element={<LawyerDashboard />} />
+            <Route path="/lawyer/profile" element={<LawyerProfile />} />
+            <Route path="/lawyer/communication" element={<ClientCommunicationPortal />} />
             <Route path="/documents/upload" element={<DocumentUpload />} />
             <Route path="/cases" element={<CaseTracking />} />
             <Route path="/legal-updates" element={<LegalUpdates />} />

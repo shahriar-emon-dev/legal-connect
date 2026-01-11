@@ -14,9 +14,10 @@ const Sidebar = ({ userType }) => {
 
   const lawyerLinks = [
     { path: '/lawyer/dashboard', label: 'Dashboard', icon: '📊' },
+    { path: '/lawyer/profile', label: 'Profile', icon: '👤' },
+    { path: '/lawyer/communication', label: 'Communication', icon: '💬' },
     { path: '/lawyer/dashboard/appointments', label: 'Appointments', icon: '📅' },
     { path: '/lawyer/dashboard/documents', label: 'Documents', icon: '📄' },
-    { path: '/chat', label: 'Messages', icon: '💬' },
   ];
 
   const links = userType === 'client' ? clientLinks : lawyerLinks;
