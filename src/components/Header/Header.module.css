@@ -3,9 +3,12 @@
   top: 0;
   left: 0;
   right: 0;
-  background-color: #2c3e50;
+  height: 80px;
+  background-color: #0F2A5E;
   color: white;
-  padding: 1rem 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 1000;
 }
@@ -26,6 +29,12 @@
   margin: 0;
 }
 
+.logoImage {
+  display: block;
+  height: 46px;
+  width: auto;
+}
+
 .logo {
   text-decoration: none;
 }
@@ -44,21 +53,23 @@
 }
 
 .nav a:hover {
-  color: #3498db;
+  color: #22D3EE;
 }
 
 .registerBtn {
-  background-color: #3498db;
+  background: linear-gradient(135deg, #C8920A 0%, #E8B528 100%);
+  color: #1A1F2E !important;
   padding: 0.5rem 1.5rem;
   border-radius: 4px;
-  transition: background-color 0.3s;
+  transition: filter 0.3s;
 }
 
 .registerBtn:hover {
-  background-color: #2980b9;
+  filter: brightness(0.95);
 }
 
 .logoutBtn {
+  /* OLD COLOR - needs review */
   background-color: #e74c3c;
   color: white;
   border: none;
@@ -70,6 +81,7 @@
 }
 
 .logoutBtn:hover {
+  /* OLD COLOR - needs review */
   background-color: #c0392b;
 }
 
@@ -91,6 +103,10 @@
 }
 
 @media (max-width: 768px) {
+  .logoImage {
+    height: 40px;
+  }
+
   .menuToggle {
     display: flex;
   }
@@ -100,7 +116,7 @@
     top: 100%;
     left: 0;
     right: 0;
-    background-color: #2c3e50;
+    background-color: #0F2A5E;
     flex-direction: column;
     padding: 1rem;
     gap: 1rem;

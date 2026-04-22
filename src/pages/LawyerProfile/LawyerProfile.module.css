@@ -1,6 +1,6 @@
 .profile {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #F5F6FA;
 }
 
 .profileLayout {
@@ -18,7 +18,7 @@
 
 .profileTitle {
   font-size: 2rem;
-  color: #333;
+  color: #1A1F2E;
   margin: 0;
 }
 
@@ -43,12 +43,12 @@
 .profileInfo h2 {
   margin: 0 0 10px 0;
   font-size: 1.5rem;
-  color: #333;
+  color: #1A1F2E;
 }
 
 .specialization {
   font-weight: bold;
-  color: #007bff;
+  color: #0F2A5E;
   margin: 5px 0;
 }
 
@@ -56,7 +56,7 @@
 .experience,
 .contact {
   margin: 5px 0;
-  color: #666;
+  color: #6B7280;
 }
 
 .bioSection,
@@ -67,13 +67,13 @@
 .bioSection h3,
 .qualificationsSection h3 {
   margin-bottom: 10px;
-  color: #333;
+  color: #1A1F2E;
 }
 
 .bioSection p,
 .qualificationsSection p {
   line-height: 1.6;
-  color: #555;
+  color: #6B7280;
 }
 
 .loading {
@@ -82,5 +82,5 @@
   align-items: center;
   height: 100vh;
   font-size: 1.2rem;
-  color: #666;
+  color: #6B7280;
 }

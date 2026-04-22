@@ -13,13 +13,13 @@
 
 .authCard h2 {
   margin-bottom: 0.5rem;
-  color: #2c3e50;
+  color: #1A1F2E;
   text-align: center;
 }
 
 .subtitle {
   text-align: center;
-  color: #7f8c8d;
+  color: #6B7280;
   margin-bottom: 2rem;
 }
 
@@ -37,13 +37,13 @@
 
 .formGroup label {
   font-weight: 500;
-  color: #34495e;
+  color: #1A1F2E;
 }
 
 .formGroup input,
 .formGroup select {
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(15, 42, 94, 0.12);
   border-radius: 4px;
   font-size: 1rem;
   transition: border-color 0.3s;
@@ -52,20 +52,23 @@
 .formGroup input:focus,
 .formGroup select:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: #0E7490;
 }
 
 .inputError {
+  /* OLD COLOR - needs review */
   border-color: #e74c3c !important;
 }
 
 .error {
+  /* OLD COLOR - needs review */
   color: #e74c3c;
   font-size: 0.875rem;
 }
 
 .errorMessage {
-  background-color: #fee;
+  background-color: #FEE2E2;
+  /* OLD COLOR - needs review */
   color: #e74c3c;
   padding: 0.75rem;
   border-radius: 4px;
@@ -84,11 +87,11 @@
 .switchAuth {
   text-align: center;
   margin-top: 1.5rem;
-  color: #7f8c8d;
+  color: #6B7280;
 }
 
 .switchAuth a {
-  color: #3498db;
+  color: #0E7490;
   text-decoration: none;
   font-weight: 500;
 }

@@ -10,13 +10,13 @@
 }
 
 .header h1 {
-  color: #2c3e50;
+  color: #1A1F2E;
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
 }
 
 .header p {
-  color: #7f8c8d;
+  color: #6B7280;
   font-size: 1.1rem;
 }
 
@@ -31,11 +31,11 @@
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e1e8ed;
+  border: 1px solid rgba(15, 42, 94, 0.12);
 }
 
 .feedbackForm h2, .recentFeedback h2 {
-  color: #2c3e50;
+  color: #1A1F2E;
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
 }
@@ -48,13 +48,13 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #2c3e50;
+  color: #1A1F2E;
 }
 
 .select {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(15, 42, 94, 0.12);
   border-radius: 6px;
   font-size: 1rem;
   background: white;
@@ -67,23 +67,23 @@
 
 .star {
   font-size: 2rem;
-  color: #ddd;
+  color: rgba(15, 42, 94, 0.12);
   cursor: pointer;
   transition: color 0.2s;
 }
 
 .star.active {
-  color: #f39c12;
+  color: #C8920A;
 }
 
 .star.interactive:hover {
-  color: #f39c12;
+  color: #C8920A;
 }
 
 .textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(15, 42, 94, 0.12);
   border-radius: 6px;
   font-size: 1rem;
   resize: vertical;
@@ -91,8 +91,8 @@
 }
 
 .submitBtn {
-  background: #3498db;
-  color: white;
+  background: linear-gradient(135deg, #C8920A 0%, #E8B528 100%);
+  color: #1A1F2E;
   border: none;
   padding: 0.75rem 2rem;
   border-radius: 6px;
@@ -104,12 +104,12 @@
 }
 
 .submitBtn:hover {
-  background: #2980b9;
+  background: linear-gradient(135deg, #96690A 0%, #C8920A 100%);
 }
 
 .noFeedback {
   text-align: center;
-  color: #7f8c8d;
+  color: #6B7280;
   font-style: italic;
   padding: 2rem;
 }
@@ -121,7 +121,7 @@
 }
 
 .feedbackItem {
-  border-bottom: 1px solid #e1e8ed;
+  border-bottom: 1px solid rgba(15, 42, 94, 0.12);
   padding-bottom: 1rem;
 }
 
@@ -138,8 +138,8 @@
 }
 
 .category {
-  background: #3498db;
-  color: white;
+  background: #ECFEFF;
+  color: #164E63;
   padding: 0.2rem 0.6rem;
   border-radius: 12px;
   font-size: 0.8rem;
@@ -148,12 +148,12 @@
 }
 
 .date {
-  color: #7f8c8d;
+  color: #6B7280;
   font-size: 0.9rem;
 }
 
 .comment {
-  color: #5a6c7d;
+  color: #6B7280;
   line-height: 1.5;
   margin: 0;
 }

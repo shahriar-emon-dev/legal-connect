@@ -11,7 +11,7 @@
 .title {
   font-size: 2.5rem;
   margin-bottom: 2rem;
-  color: #2c3e50;
+  color: #1A1F2E;
   text-align: center;
 }
 
@@ -30,14 +30,14 @@
 .searchInput {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(15, 42, 94, 0.12);
   border-radius: 4px;
   font-size: 1rem;
 }
 
 .searchInput:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: #0E7490;
 }
 
 .filters {
@@ -48,14 +48,14 @@
 
 .filterInput {
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(15, 42, 94, 0.12);
   border-radius: 4px;
   font-size: 1rem;
 }
 
 .filterInput:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: #0E7490;
 }
 
 .results {
@@ -64,7 +64,7 @@
 
 .resultsCount {
   margin-bottom: 1.5rem;
-  color: #7f8c8d;
+  color: #6B7280;
   font-size: 1.1rem;
 }
 
@@ -89,7 +89,7 @@
 
 .lawyerHeader h3 {
   margin: 0;
-  color: #2c3e50;
+  color: #1A1F2E;
   font-size: 1.5rem;
 }
 
@@ -102,18 +102,18 @@
 
 .specialization {
   font-weight: 600;
-  color: #3498db;
+  color: #0F2A5E;
   font-size: 1.1rem;
 }
 
 .location,
 .experience {
-  color: #7f8c8d;
+  color: #6B7280;
 }
 
 .price {
   font-weight: 600;
-  color: #27ae60;
+  color: #1E6B4A;
   font-size: 1.1rem;
 }
 
@@ -126,13 +126,13 @@
   text-align: center;
   padding: 4rem;
   font-size: 1.2rem;
-  color: #7f8c8d;
+  color: #6B7280;
 }
 
 .noResults {
   text-align: center;
   padding: 4rem;
-  color: #7f8c8d;
+  color: #6B7280;
 }
 
 @media (max-width: 768px) {

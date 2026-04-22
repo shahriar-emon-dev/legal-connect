@@ -1,6 +1,6 @@
 .sidebar {
   width: 250px;
-  background-color: white;
+  background-color: #FFFFFF;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
   padding: 2rem 0;
   min-height: calc(100vh - 80px);
@@ -16,21 +16,21 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 2rem;
-  color: #34495e;
+  color: #1A1F2E;
   text-decoration: none;
   transition: all 0.3s;
   border-left: 3px solid transparent;
 }
 
 .navLink:hover {
-  background-color: #ecf0f1;
-  border-left-color: #3498db;
+  background-color: #ECFEFF;
+  border-left-color: #0E7490;
 }
 
 .navLink.active {
-  background-color: #e8f4f8;
-  border-left-color: #3498db;
-  color: #2980b9;
+  background-color: #ECFEFF;
+  border-left-color: #0E7490;
+  color: #164E63;
   font-weight: 600;
 }
 
@@ -59,7 +59,7 @@
 
   .navLink.active {
     border-left: none;
-    border-bottom-color: #3498db;
+    border-bottom-color: #0E7490;
   }
 }
 

@@ -3,39 +3,354 @@
 }
 
 .hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 6rem 2rem;
-  text-align: center;
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+  background: linear-gradient(135deg, #0F2A5E 0%, #1E4D96 100%);
+  padding: 3rem 2rem;
 }
 
-.heroContent {
-  max-width: 800px;
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, rgba(200, 146, 10, 0.5) 1px, transparent 0);
+  background-size: 32px 32px;
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  right: -180px;
+  bottom: -210px;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  border: 60px solid rgba(200, 146, 10, 0.12);
+  box-shadow: inset 0 0 0 65px rgba(200, 146, 10, 0.08);
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
   margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 2.4rem;
+  align-items: center;
+}
+
+.heroLeft {
+  max-width: 650px;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(200, 146, 10, 0.6);
+  background: rgba(200, 146, 10, 0.2);
+  color: #e8b528;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.73rem;
+  letter-spacing: 0.02em;
+  margin-bottom: 1.1rem;
+  animation: fadeUp 0.5s ease both;
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  background: #c8920a;
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .heroTitle {
-  font-size: 3rem;
+  font-size: clamp(2rem, 4.1vw, 3.05rem);
+  line-height: 1.2;
+  letter-spacing: -0.03em;
   margin-bottom: 1rem;
   font-weight: 700;
+  animation: fadeUp 0.5s 0.12s ease both;
+}
+
+.heroTitle span {
+  color: #e8b528;
 }
 
 .heroSubtitle {
-  font-size: 1.25rem;
-  margin-bottom: 2rem;
-  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.76);
+  max-width: 540px;
+  margin-bottom: 1.65rem;
   line-height: 1.6;
+  animation: fadeUp 0.5s 0.22s ease both;
 }
 
 .heroButtons {
   display: flex;
-  gap: 1rem;
-  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
   flex-wrap: wrap;
+  margin-bottom: 1.7rem;
+  animation: fadeUp 0.5s 0.32s ease both;
+}
+
+.primaryHeroBtn,
+.secondaryHeroBtn,
+.linkHeroBtn {
+  text-decoration: none;
+}
+
+.primaryHeroBtn {
+  background: linear-gradient(135deg, #c8920a, #e8b528);
+  color: #0f2a5e;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 0.73rem 1.22rem;
+  transition: transform 0.2s ease;
+}
+
+.primaryHeroBtn:hover {
+  transform: translateY(-1px);
+}
+
+.secondaryHeroBtn {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 0.68rem 1.18rem;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.linkHeroBtn {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: 0.92rem;
+  padding: 0.35rem 0.15rem;
+}
+
+.heroTrust {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  animation: fadeUp 0.5s 0.44s ease both;
+}
+
+.trustItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+}
+
+.trustIcon {
+  color: #e8b528;
+}
+
+.heroRight {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.floatCard {
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  color: #1a1f2e;
+  padding: 0.9rem;
+}
+
+.activeCaseCard {
+  animation: floatCard 4s ease-in-out infinite;
+}
+
+.proposalCard {
+  animation: floatCard 4s 1.5s ease-in-out infinite;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.45rem;
+}
+
+.cardLabel {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.progressPill {
+  font-size: 0.68rem;
+  border-radius: 999px;
+  padding: 0.18rem 0.54rem;
+  background: #D1FAE5;
+  color: #1E6B4A;
+  font-weight: 600;
+}
+
+.caseTitle {
+  font-size: 1.1rem;
+  margin: 0 0 0.2rem;
+  font-weight: 700;
+}
+
+.caseLawyer {
+  margin: 0 0 0.6rem;
+  color: #6b7280;
+}
+
+.caseDateRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  background: #f5f6fa;
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+}
+
+.caseDateRow span {
+  color: #6b7280;
+}
+
+.caseDateRow strong {
+  color: #0f2a5e;
+}
+
+.proposalHead {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f2a5e, #1e4d96);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.proposalName {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.proposalMeta {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.proposalText {
+  margin: 0 0 0.7rem;
+  color: #1A1F2E;
+  line-height: 1.45;
+  font-size: 0.9rem;
+}
+
+.proposalBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bidPrice {
+  color: #0f2a5e;
+  font-weight: 700;
+  font-size: 1.35rem;
+}
+
+.acceptBidBtn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #c8920a, #e8b528);
+  color: #0f2a5e;
+  cursor: pointer;
+}
+
+.statCards {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+.statCard {
+  text-align: center;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.8rem;
+}
+
+.statCard strong {
+  display: block;
+  color: #e8b528;
+  font-size: 1.8rem;
+  line-height: 1.1;
+}
+
+.statCard span {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.86rem;
 }
 
 .ctaButton {
   min-width: 150px;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes floatCard {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 .section {
@@ -51,7 +366,7 @@
   text-align: center;
   font-size: 2.5rem;
   margin-bottom: 3rem;
-  color: #2c3e50;
+  color: #1A1F2E;
 }
 
 .servicesGrid {
@@ -81,16 +396,16 @@
 
 .serviceCard h3 {
   margin-bottom: 1rem;
-  color: #2c3e50;
+  color: #1A1F2E;
 }
 
 .serviceCard p {
-  color: #7f8c8d;
+  color: #6B7280;
   line-height: 1.6;
 }
 
 .howItWorks {
-  background-color: #f8f9fa;
+  background-color: #F5F6FA;
 }
 
 .steps {
@@ -108,7 +423,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background-color: #3498db;
+  background-color: #0F2A5E;
   color: white;
   display: flex;
   align-items: center;
@@ -120,16 +435,16 @@
 
 .step h3 {
   margin-bottom: 0.5rem;
-  color: #2c3e50;
+  color: #1A1F2E;
 }
 
 .step p {
-  color: #7f8c8d;
+  color: #6B7280;
   line-height: 1.6;
 }
 
 .ctaSection {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0F2A5E 0%, #1E6B4A 100%);
   color: white;
   text-align: center;
 }
@@ -146,12 +461,66 @@
 }
 
 @media (max-width: 768px) {
+  .hero {
+    padding: 2.4rem 1rem;
+  }
+
+  .hero::after {
+    width: 380px;
+    height: 380px;
+    right: -160px;
+    bottom: -190px;
+    border-width: 38px;
+    box-shadow: inset 0 0 0 40px rgba(200, 146, 10, 0.08);
+  }
+
+  .heroInner {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+
+  .heroLeft {
+    max-width: 100%;
+  }
+
+  .heroBadge {
+    margin-bottom: 0.8rem;
+  }
+
   .heroTitle {
     font-size: 2rem;
   }
 
   .heroSubtitle {
     font-size: 1rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .heroButtons {
+    margin-bottom: 1rem;
+  }
+
+  .primaryHeroBtn,
+  .secondaryHeroBtn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .heroRight {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .floatCard {
+    padding: 0.8rem;
+  }
+
+  .bidPrice {
+    font-size: 1.2rem;
+  }
+
+  .statCard strong {
+    font-size: 1.45rem;
   }
 
   .sectionTitle {

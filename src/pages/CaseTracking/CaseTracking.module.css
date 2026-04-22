@@ -10,13 +10,13 @@
 }
 
 .header h1 {
-  color: #2c3e50;
+  color: #1A1F2E;
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
 }
 
 .header p {
-  color: #7f8c8d;
+  color: #6B7280;
   font-size: 1.1rem;
 }
 
@@ -33,7 +33,7 @@
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
-  border: 1px solid #e1e8ed;
+  border: 1px solid rgba(15, 42, 94, 0.12);
 }
 
 .caseCard:hover {
@@ -49,7 +49,7 @@
 }
 
 .caseHeader h3 {
-  color: #2c3e50;
+  color: #1A1F2E;
   font-size: 1.3rem;
   margin: 0;
   flex: 1;
@@ -68,7 +68,7 @@
 }
 
 .description {
-  color: #5a6c7d;
+  color: #6B7280;
   line-height: 1.6;
   margin-bottom: 1.5rem;
 }
@@ -78,16 +78,16 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 1rem;
-  border-top: 1px solid #e1e8ed;
+  border-top: 1px solid rgba(15, 42, 94, 0.12);
 }
 
 .caseFooter span {
-  color: #7f8c8d;
+  color: #6B7280;
   font-size: 0.9rem;
 }
 
 .viewDetailsBtn {
-  background: #3498db;
+  background: #0F2A5E;
   color: white;
   border: none;
   padding: 0.6rem 1.2rem;
@@ -99,7 +99,7 @@
 }
 
 .viewDetailsBtn:hover {
-  background: #2980b9;
+  background: #081A3D;
 }
 
 .noCases {
@@ -111,10 +111,10 @@
 }
 
 .noCases h3 {
-  color: #2c3e50;
+  color: #1A1F2E;
   margin-bottom: 0.5rem;
 }
 
 .noCases p {
-  color: #7f8c8d;
+  color: #6B7280;
 }

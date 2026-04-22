@@ -10,13 +10,13 @@
 }
 
 .header h1 {
-  color: #2c3e50;
+  color: #1A1F2E;
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
 }
 
 .header p {
-  color: #7f8c8d;
+  color: #6B7280;
   font-size: 1.1rem;
 }
 
@@ -34,12 +34,12 @@
 
 .categoryFilter label {
   font-weight: 500;
-  color: #2c3e50;
+  color: #1A1F2E;
 }
 
 .select {
   padding: 0.5rem 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(15, 42, 94, 0.12);
   border-radius: 6px;
   background: white;
   font-size: 1rem;
@@ -58,7 +58,7 @@
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
-  border: 1px solid #e1e8ed;
+  border: 1px solid rgba(15, 42, 94, 0.12);
 }
 
 .updateCard:hover {
@@ -78,8 +78,8 @@
 }
 
 .category {
-  background: #3498db;
-  color: white;
+  background: #ECFEFF;
+  color: #164E63;
   padding: 0.2rem 0.6rem;
   border-radius: 12px;
   font-size: 0.8rem;
@@ -88,19 +88,19 @@
 }
 
 .date {
-  color: #7f8c8d;
+  color: #6B7280;
   font-size: 0.9rem;
 }
 
 .updateHeader h3 {
-  color: #2c3e50;
+  color: #1A1F2E;
   font-size: 1.4rem;
   margin: 0;
   line-height: 1.3;
 }
 
 .summary {
-  color: #34495e;
+  color: #1A1F2E;
   font-size: 1.1rem;
   line-height: 1.5;
   margin-bottom: 1rem;
@@ -108,7 +108,7 @@
 }
 
 .content {
-  color: #5a6c7d;
+  color: #6B7280;
   line-height: 1.6;
   margin-bottom: 1.5rem;
 }
@@ -117,7 +117,7 @@
   display: flex;
   gap: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e1e8ed;
+  border-top: 1px solid rgba(15, 42, 94, 0.12);
 }
 
 .readMoreBtn, .shareBtn {
@@ -131,21 +131,21 @@
 }
 
 .readMoreBtn {
-  background: #3498db;
-  color: white;
+  background: linear-gradient(135deg, #C8920A 0%, #E8B528 100%);
+  color: #1A1F2E;
 }
 
 .readMoreBtn:hover {
-  background: #2980b9;
+  background: linear-gradient(135deg, #96690A 0%, #C8920A 100%);
 }
 
 .shareBtn {
-  background: #95a5a6;
+  background: #0E7490;
   color: white;
 }
 
 .shareBtn:hover {
-  background: #7f8c8d;
+  background: #164E63;
 }
 
 .noUpdates {
@@ -157,10 +157,10 @@
 }
 
 .noUpdates h3 {
-  color: #2c3e50;
+  color: #1A1F2E;
   margin-bottom: 0.5rem;
 }
 
 .noUpdates p {
-  color: #7f8c8d;
+  color: #6B7280;
 }

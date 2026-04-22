@@ -10,7 +10,7 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background-color: #3498db;
+  background-color: #0F2A5E;
 }
 
 .timelineItem {
@@ -25,9 +25,9 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background-color: #3498db;
+  background-color: #0F2A5E;
   border: 2px solid white;
-  box-shadow: 0 0 0 2px #3498db;
+  box-shadow: 0 0 0 2px #0F2A5E;
 }
 
 .timelineContent {
@@ -39,19 +39,19 @@
 
 .timelineTitle {
   margin: 0 0 0.5rem 0;
-  color: #2c3e50;
+  color: #1A1F2E;
   font-size: 1.1rem;
 }
 
 .timelineDate {
   margin: 0 0 0.5rem 0;
-  color: #7f8c8d;
+  color: #6B7280;
   font-size: 0.9rem;
 }
 
 .timelineDescription {
   margin: 0;
-  color: #34495e;
+  color: #1A1F2E;
   line-height: 1.6;
 }
 

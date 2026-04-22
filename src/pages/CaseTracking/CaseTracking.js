@@ -21,11 +21,11 @@ const CaseTracking = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'In Progress': return '#007bff';
-      case 'Pending Review': return '#ffc107';
-      case 'Completed': return '#28a745';
-      case 'On Hold': return '#6c757d';
-      default: return '#6c757d';
+      case 'In Progress': return '#0F2A5E';
+      case 'Pending Review': return '#C8920A';
+      case 'Completed': return '#1E6B4A';
+      case 'On Hold': return '#6B7280';
+      default: return '#6B7280';
     }
   };
 

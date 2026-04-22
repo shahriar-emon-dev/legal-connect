@@ -11,7 +11,7 @@
 .title {
   font-size: 2.5rem;
   margin-bottom: 2rem;
-  color: #2c3e50;
+  color: #1A1F2E;
   text-align: center;
 }
 
@@ -39,14 +39,14 @@
 
 .formGroup label {
   font-weight: 500;
-  color: #34495e;
+  color: #1A1F2E;
 }
 
 .formGroup input,
 .formGroup select,
 .formGroup textarea {
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(15, 42, 94, 0.12);
   border-radius: 4px;
   font-size: 1rem;
   font-family: inherit;
@@ -57,14 +57,16 @@
 .formGroup select:focus,
 .formGroup textarea:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: #0E7490;
 }
 
 .inputError {
+  /* OLD COLOR - needs review */
   border-color: #e74c3c !important;
 }
 
 .error {
+  /* OLD COLOR - needs review */
   color: #e74c3c;
   font-size: 0.875rem;
 }
@@ -74,7 +76,8 @@
 }
 
 .errorMessage {
-  background-color: #fee;
+  background-color: #FEE2E2;
+  /* OLD COLOR - needs review */
   color: #e74c3c;
   padding: 0.75rem;
   border-radius: 4px;

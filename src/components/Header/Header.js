@@ -19,7 +19,7 @@ const Header = () => {
     <header className={styles.header}>
       <div className={styles.container}>
         <Link to="/" className={styles.logo}>
-          <h1>LegalConnect</h1>
+          <img src="/logo.svg" alt="LegalConnect" className={styles.logoImage} />
         </Link>
         
         <button 

@@ -11,7 +11,7 @@
 .title {
   font-size: 2.5rem;
   margin-bottom: 2rem;
-  color: #2c3e50;
+  color: #1A1F2E;
   text-align: center;
 }
 
@@ -33,14 +33,14 @@
 
 .formGroup label {
   font-weight: 500;
-  color: #34495e;
+  color: #1A1F2E;
 }
 
 .formGroup input,
 .formGroup select,
 .formGroup textarea {
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid rgba(15, 42, 94, 0.12);
   border-radius: 4px;
   font-size: 1rem;
   font-family: inherit;
@@ -51,14 +51,16 @@
 .formGroup select:focus,
 .formGroup textarea:focus {
   outline: none;
-  border-color: #3498db;
+  border-color: #0E7490;
 }
 
 .inputError {
+  /* OLD COLOR - needs review */
   border-color: #e74c3c !important;
 }
 
 .error {
+  /* OLD COLOR - needs review */
   color: #e74c3c;
   font-size: 0.875rem;
 }
@@ -81,27 +83,27 @@
 .fileLabel {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background-color: #3498db;
-  color: white;
+  background: linear-gradient(135deg, #C8920A 0%, #E8B528 100%);
+  color: #1A1F2E;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: filter 0.3s;
   text-align: center;
 }
 
 .fileLabel:hover {
-  background-color: #2980b9;
+  filter: brightness(0.95);
 }
 
 .fileInfo {
   margin-top: 0.5rem;
-  color: #27ae60;
+  color: #1E6B4A;
   font-size: 0.9rem;
 }
 
 .fileHint {
   margin-top: 0.5rem;
-  color: #7f8c8d;
+  color: #6B7280;
   font-size: 0.875rem;
 }
 
@@ -112,26 +114,27 @@
 .progressBar {
   width: 100%;
   height: 20px;
-  background-color: #ecf0f1;
+  background-color: #E8F0FE;
   border-radius: 10px;
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
-  background-color: #3498db;
+  background: linear-gradient(90deg, #0F2A5E, #0E7490);
   transition: width 0.3s;
 }
 
 .progressText {
   text-align: center;
   margin-top: 0.5rem;
-  color: #7f8c8d;
+  color: #6B7280;
   font-size: 0.9rem;
 }
 
 .errorMessage {
-  background-color: #fee;
+  background-color: #FEE2E2;
+  /* OLD COLOR - needs review */
   color: #e74c3c;
   padding: 0.75rem;
   border-radius: 4px;
