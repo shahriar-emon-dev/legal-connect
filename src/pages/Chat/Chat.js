@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import Card from '../../components/Card/Card';
 import Button from '../../components/Button/Button';
 import styles from './Chat.module.css';
 
@@ -15,36 +14,9 @@ const Chat = () => {
   const messagesEndRef = useRef(null);
   const wsRef = useRef(null);
 
-  useEffect(() => {
-    fetchChatData();
-    // In a real app, you would set up WebSocket connection here
-    // For now, we'll simulate with polling
-    const interval = setInterval(() => {
-      if (selectedUser) {
-        fetchMessages(selectedUser);
-      }
-    }, 2000);
-
-    return () => {
-      clearInterval(interval);
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, [selectedUser]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const fetchChatData = async () => {
+  const fetchChatData = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const userType = localStorage.getItem('userType');
       
       // Fetch chat users (lawyers for clients, clients for lawyers)
       const usersRes = await axios.get(`/api/chat/users`, {
@@ -93,6 +65,33 @@ const Chat = () => {
     } finally {
       setLoading(false);
     }
+  }, [selectedUser]);
+
+  useEffect(() => {
+    fetchChatData();
+    // In a real app, you would set up WebSocket connection here
+    // For now, we'll simulate with polling
+    const interval = setInterval(() => {
+      if (selectedUser) {
+        fetchMessages(selectedUser);
+      }
+    }, 2000);
+
+    const ws = wsRef.current;
+    return () => {
+      clearInterval(interval);
+      if (ws) {
+        ws.close();
+      }
+    };
+  }, [fetchChatData, selectedUser]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const fetchMessages = async (targetUserId) => {

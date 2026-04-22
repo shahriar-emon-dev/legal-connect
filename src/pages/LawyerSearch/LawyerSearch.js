@@ -22,81 +22,6 @@ const LawyerSearch = () => {
   }, []);
 
   useEffect(() => {
-    applyFilters();
-  }, [filters, lawyers]);
-
-  const fetchLawyers = async () => {
-    try {
-      const response = await axios.get('/api/lawyers');
-      setLawyers(response.data);
-      setFilteredLawyers(response.data);
-    } catch (error) {
-      console.error('Error fetching lawyers:', error);
-      // Sample data for demonstration
-      const sampleLawyers = [
-        {
-          id: 1,
-          name: 'John Smith',
-          specialization: 'Criminal Law',
-          location: 'New York, NY',
-          rating: 4.5,
-          experience: '10 years',
-          price: '$200/hour'
-        },
-        {
-          id: 2,
-          name: 'Sarah Johnson',
-          specialization: 'Corporate Law',
-          location: 'Los Angeles, CA',
-          rating: 4.8,
-          experience: '15 years',
-          price: '$250/hour'
-        },
-        {
-          id: 3,
-          name: 'Michael Brown',
-          specialization: 'Family Law',
-          location: 'Chicago, IL',
-          rating: 4.2,
-          experience: '8 years',
-          price: '$180/hour'
-        },
-        {
-          id: 4,
-          name: 'Emily Davis',
-          specialization: 'Real Estate Law',
-          location: 'Miami, FL',
-          rating: 4.7,
-          experience: '12 years',
-          price: '$220/hour'
-        },
-        {
-          id: 5,
-          name: 'David Wilson',
-          specialization: 'Immigration Law',
-          location: 'San Francisco, CA',
-          rating: 4.6,
-          experience: '9 years',
-          price: '$190/hour'
-        },
-        {
-          id: 6,
-          name: 'Lisa Anderson',
-          specialization: 'Intellectual Property',
-          location: 'Boston, MA',
-          rating: 4.9,
-          experience: '18 years',
-          price: '$300/hour'
-        }
-      ];
-      setLawyers(sampleLawyers);
-      setFilteredLawyers(sampleLawyers);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const applyFilters = () => {
     let filtered = [...lawyers];
 
     if (filters.name) {
@@ -118,6 +43,77 @@ const LawyerSearch = () => {
     }
 
     setFilteredLawyers(filtered);
+  }, [filters, lawyers]);
+
+  const fetchLawyers = async () => {
+    try {
+      const response = await axios.get('/api/lawyers');
+      setLawyers(response.data);
+      setFilteredLawyers(response.data);
+    } catch (error) {
+      console.error('Error fetching lawyers:', error);
+      // Sample data for demonstration
+      const sampleLawyers = [
+        {
+          id: 1,
+          name: 'John Smith',
+          specialization: 'Criminal Law',
+          location: 'New York, NY',
+          rating: 4.5,
+          experience: '10 years',
+          price: 'BDT 200/hour'
+        },
+        {
+          id: 2,
+          name: 'Sarah Johnson',
+          specialization: 'Corporate Law',
+          location: 'Los Angeles, CA',
+          rating: 4.8,
+          experience: '15 years',
+          price: 'BDT 250/hour'
+        },
+        {
+          id: 3,
+          name: 'Michael Brown',
+          specialization: 'Family Law',
+          location: 'Chicago, IL',
+          rating: 4.2,
+          experience: '8 years',
+          price: 'BDT 180/hour'
+        },
+        {
+          id: 4,
+          name: 'Emily Davis',
+          specialization: 'Real Estate Law',
+          location: 'Miami, FL',
+          rating: 4.7,
+          experience: '12 years',
+          price: 'BDT 220/hour'
+        },
+        {
+          id: 5,
+          name: 'David Wilson',
+          specialization: 'Immigration Law',
+          location: 'San Francisco, CA',
+          rating: 4.6,
+          experience: '9 years',
+          price: 'BDT 190/hour'
+        },
+        {
+          id: 6,
+          name: 'Lisa Anderson',
+          specialization: 'Intellectual Property',
+          location: 'Boston, MA',
+          rating: 4.9,
+          experience: '18 years',
+          price: 'BDT 300/hour'
+        }
+      ];
+      setLawyers(sampleLawyers);
+      setFilteredLawyers(sampleLawyers);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFilterChange = (e) => {

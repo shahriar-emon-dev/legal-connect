@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from './LegalUpdates.module.css';
 
 const LegalUpdates = () => {
-  const [updates, setUpdates] = useState([
+  const [updates] = useState([
     {
       id: 1,
       title: 'New Data Protection Regulations',

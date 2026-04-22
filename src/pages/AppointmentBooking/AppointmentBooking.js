@@ -17,7 +17,6 @@ const AppointmentBooking = () => {
     notes: ''
   });
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {

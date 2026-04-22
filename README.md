@@ -5,6 +5,7 @@ A complete React.js frontend application for connecting clients with lawyers. Th
 ## Features
 
 ### For Clients
+
 - **Lawyer Search**: Search and filter lawyers by name, specialization, and location
 - **Appointment Booking**: Schedule consultations with lawyers
 - **Document Management**: Upload and manage legal documents
@@ -12,11 +13,13 @@ A complete React.js frontend application for connecting clients with lawyers. Th
 - **Real-time Chat**: Communicate with lawyers via chat interface
 
 ### For Lawyers
+
 - **Lawyer Dashboard**: Manage appointments, view client documents, and chat notifications
 - **Profile Management**: Edit profile information
 - **Client Communication**: Chat with clients and review documents
 
 ### General Features
+
 - **Authentication**: Separate login and registration for clients and lawyers
 - **Responsive Design**: Mobile-friendly interface
 - **Form Validation**: Client-side validation for all forms
@@ -62,11 +65,13 @@ LegalConnect/
 ## Installation
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Start the development server:
+
 ```bash
 npm start
 ```
@@ -78,10 +83,12 @@ The application will open at `http://localhost:3000`
 The application makes API calls to the following endpoints (placeholder endpoints):
 
 ### Authentication
+
 - `POST /api/auth/login` - User login
 - `POST /api/auth/register` - User registration
 
 ### Lawyers
+
 - `GET /api/lawyers` - Get list of lawyers
 - `GET /api/lawyer/profile` - Get lawyer profile
 - `PUT /api/lawyer/profile` - Update lawyer profile
@@ -90,22 +97,27 @@ The application makes API calls to the following endpoints (placeholder endpoint
 - `GET /api/lawyer/notifications` - Get notifications
 
 ### Appointments
+
 - `GET /api/appointments` - Get user appointments
 - `POST /api/appointments` - Book new appointment
 
 ### Documents
+
 - `GET /api/documents` - Get user documents
 - `POST /api/documents/upload` - Upload document
 
 ### Chat
+
 - `GET /api/chat/users` - Get chat users
 - `GET /api/chat/messages/:userId` - Get messages with user
 - `POST /api/chat/send` - Send message
 
 ### Contact
+
 - `POST /api/contact` - Send contact form
 
 ### Cases
+
 - `GET /api/cases/progress` - Get case progress
 
 ## Technologies Used
@@ -118,6 +130,7 @@ The application makes API calls to the following endpoints (placeholder endpoint
 ## Key Components
 
 ### Reusable Components
+
 - **Header**: Navigation header with responsive menu
 - **Footer**: Site footer with links and information
 - **Sidebar**: Navigation sidebar for dashboards
@@ -127,6 +140,7 @@ The application makes API calls to the following endpoints (placeholder endpoint
 - **Timeline**: Visual timeline for case progress
 
 ### Pages
+
 - **Home**: Landing page with hero section and services overview
 - **Login/Register**: Authentication pages for clients and lawyers
 - **LawyerSearch**: Search and filter lawyers
@@ -140,6 +154,7 @@ The application makes API calls to the following endpoints (placeholder endpoint
 ## Styling
 
 The application uses CSS Modules for component-scoped styling. Each component has its own `.module.css` file. The design is:
+
 - Clean and modern
 - Fully responsive (mobile and desktop)
 - Uses a consistent color scheme
@@ -148,6 +163,7 @@ The application uses CSS Modules for component-scoped styling. Each component ha
 ## Authentication
 
 The application uses localStorage to store authentication tokens. In a production environment, you should:
+
 - Use secure HTTP-only cookies
 - Implement proper token refresh
 - Add route protection
@@ -179,5 +195,3 @@ The application includes sample data for demonstration purposes. In a real appli
 ## License
 
 This project is created for demonstration purposes.
-
-

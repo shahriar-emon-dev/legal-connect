@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from './CaseTracking.module.css';
 
 const CaseTracking = () => {
-  const [cases, setCases] = useState([
+  const [cases] = useState([
     {
       id: 1,
       title: 'Property Dispute Case',

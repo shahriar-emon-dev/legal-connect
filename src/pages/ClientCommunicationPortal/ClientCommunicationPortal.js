@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import Card from '../../components/Card/Card';
@@ -7,8 +6,6 @@ import Button from '../../components/Button/Button';
 import styles from './ClientCommunicationPortal.module.css';
 
 const ClientCommunicationPortal = () => {
-  const { clientId } = useParams();
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('chats');
   const [chats, setChats] = useState([]);
   const [documents, setDocuments] = useState([]);
