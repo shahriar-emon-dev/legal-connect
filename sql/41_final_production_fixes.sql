@@ -45,9 +45,11 @@ BEGIN
 END $$;
 
 -- 4. Terminate any hanging/stuck queries that might be causing "Saving..." to hang
--- This safely cancels queries running longer than 5 minutes to free up table locks.
+-- This safely cancels your own queries running longer than 5 minutes to free up table locks
+-- without triggering SUPERUSER permission errors.
 SELECT pg_cancel_backend(pid)
 FROM pg_stat_activity
 WHERE state = 'active' 
   AND pid <> pg_backend_pid()
+  AND usename = current_user
   AND (now() - query_start) > interval '5 minutes';
