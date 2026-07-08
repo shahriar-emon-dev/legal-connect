@@ -46,7 +46,7 @@ const ClientMyPosts = () => {
       }
     } catch (err) {
       console.error('Error fetching my posts:', err);
-      toast.error('Failed to load your posted cases');
+      toast.error(`Failed to load your posted cases: ${err.message || err.details || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
