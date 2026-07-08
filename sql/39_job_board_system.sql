@@ -76,38 +76,55 @@ CREATE INDEX IF NOT EXISTS idx_job_proposals_status ON public.job_proposals(stat
 ALTER TABLE public.job_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.job_proposals ENABLE ROW LEVEL SECURITY;
 
+-- Helper functions to prevent infinite recursion in policies
+CREATE OR REPLACE FUNCTION public.is_job_client_check(job_id INTEGER, uid UUID)
+RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  RETURN EXISTS(SELECT 1 FROM public.job_posts WHERE id = job_id AND client_id = uid);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.has_lawyer_proposal_check(job_id INTEGER, uid UUID)
+RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  RETURN EXISTS(SELECT 1 FROM public.job_proposals WHERE job_post_id = job_id AND lawyer_id = uid);
+END;
+$$;
+
 DROP POLICY IF EXISTS "Anyone can view open job posts" ON public.job_posts;
 CREATE POLICY "Anyone can view open job posts" ON public.job_posts
   FOR SELECT USING (
     status = 'open' 
     OR client_id = auth.uid() 
     OR selected_lawyer_id = auth.uid()
-    OR auth.uid() IN (SELECT lawyer_id FROM public.job_proposals WHERE job_post_id = job_posts.id)
+    OR public.has_lawyer_proposal_check(id, auth.uid())
+    OR public.is_admin()
   );
 
 DROP POLICY IF EXISTS "Clients can create job posts" ON public.job_posts;
 CREATE POLICY "Clients can create job posts" ON public.job_posts
   FOR INSERT WITH CHECK (
-    auth.uid() = client_id
+    auth.uid() = client_id OR public.is_admin()
   );
 
 DROP POLICY IF EXISTS "Clients can update own job posts" ON public.job_posts;
 CREATE POLICY "Clients can update own job posts" ON public.job_posts
   FOR UPDATE USING (
-    auth.uid() = client_id
+    auth.uid() = client_id OR public.is_admin()
   );
 
 DROP POLICY IF EXISTS "Clients can delete own job posts" ON public.job_posts;
 CREATE POLICY "Clients can delete own job posts" ON public.job_posts
   FOR DELETE USING (
-    auth.uid() = client_id
+    auth.uid() = client_id OR public.is_admin()
   );
 
 DROP POLICY IF EXISTS "Lawyers and clients can view relevant proposals" ON public.job_proposals;
 CREATE POLICY "Lawyers and clients can view relevant proposals" ON public.job_proposals
   FOR SELECT USING (
     lawyer_id = auth.uid() 
-    OR auth.uid() IN (SELECT client_id FROM public.job_posts WHERE id = job_proposals.job_post_id)
+    OR public.is_job_client_check(job_post_id, auth.uid())
+    OR public.is_admin()
   );
 
 DROP POLICY IF EXISTS "Verified lawyers can submit proposals" ON public.job_proposals;
@@ -124,7 +141,8 @@ DROP POLICY IF EXISTS "Lawyers and clients can update relevant proposals" ON pub
 CREATE POLICY "Lawyers and clients can update relevant proposals" ON public.job_proposals
   FOR UPDATE USING (
     lawyer_id = auth.uid() 
-    OR auth.uid() IN (SELECT client_id FROM public.job_posts WHERE id = job_proposals.job_post_id)
+    OR public.is_job_client_check(job_post_id, auth.uid())
+    OR public.is_admin()
   );
 
 -- 6. Trigger: Handle Proposals Count
