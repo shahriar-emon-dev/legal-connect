@@ -145,7 +145,7 @@ const AdminSettings = () => {
     }
   };
 
-  const handleMarkInquiryReplied = (id) => handleUpdateInquiryStatus(id, 'replied');
+  // const handleMarkInquiryReplied = (id) => handleUpdateInquiryStatus(id, 'replied');
 
   const ToggleSwitch = ({ checked, onChange, label, description }) => (
     <div className="flex items-center justify-between py-4">

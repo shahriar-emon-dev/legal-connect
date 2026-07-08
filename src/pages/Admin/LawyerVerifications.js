@@ -54,10 +54,7 @@ const LawyerVerifications = () => {
         l.user = userMap[l.user_id] || { name: 'Lawyer Applicant', email: '' };
       });
 
-      // Fetch lawyer_profiles for full details (bio, experience, bar council id, rates)
-      const { data: profilesData } = await supabase
-        .from('lawyer_profiles')
-        .select('*');
+      // lawyer_profiles has been merged into lawyers, so data already has full details
 
       // Also fetch all uploaded verification documents from public.documents
       const { data: docsData } = await supabase
@@ -68,7 +65,7 @@ const LawyerVerifications = () => {
 
       (data || []).forEach(l => {
         // Attach full profile information if available
-        const profile = (profilesData || []).find(p => p.id === l.user_id || p.id === l.id) || {};
+        const profile = l;
         l.fullProfile = profile;
 
         // Attach uploaded documents matching lawyer.id, lawyer.user_id, or client_id

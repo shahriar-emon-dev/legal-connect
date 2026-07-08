@@ -15,13 +15,25 @@ export function useLawyerProfile() {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('lawyer_profiles')
-          .select('*')
-          .eq('id', user.auth_id || user.id)
+          .from('lawyers')
+          .select('*, users(name)')
+          .eq('user_id', user.auth_id || user.id)
           .single();
 
         if (error && error.code !== 'PGRST116') throw error;
-        setProfile(data || null);
+        
+        let mappedData = null;
+        if (data) {
+          mappedData = {
+            ...data,
+            full_name: data.users?.name || user.name,
+            years_experience: data.experience_years,
+            primary_location: data.location,
+            contact_email: data.contact_email || user.email,
+            contact_phone: data.contact_phone || user.phone,
+          };
+        }
+        setProfile(mappedData);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -35,10 +47,22 @@ export function useLawyerProfile() {
   const updateProfile = async (updates) => {
     if (!user) return;
     try {
+      const dbUpdates = { ...updates };
+      // Map frontend fields to DB fields
+      if (dbUpdates.years_experience !== undefined) {
+        dbUpdates.experience_years = dbUpdates.years_experience;
+        delete dbUpdates.years_experience;
+      }
+      if (dbUpdates.primary_location !== undefined) {
+        dbUpdates.location = dbUpdates.primary_location;
+        delete dbUpdates.primary_location;
+      }
+      delete dbUpdates.full_name; // Saved separately in LawyerBasicInfoView
+
       const { error } = await Promise.race([
         supabase
-          .from('lawyer_profiles')
-          .upsert({ id: user.auth_id || user.id, ...updates, updated_at: new Date() }),
+          .from('lawyers')
+          .upsert({ user_id: user.auth_id || user.id, ...dbUpdates, updated_at: new Date() }, { onConflict: 'user_id' }),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out. Please check your internet connection or reload the page.')), 10000))
       ]);
       if (error) throw error;

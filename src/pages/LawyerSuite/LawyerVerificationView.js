@@ -150,9 +150,9 @@ const LawyerVerificationView = () => {
 
   const handleSubmitForReview = async () => {
     try {
-      const { error } = await supabase.from('lawyer_profiles')
+      const { error } = await supabase.from('lawyers')
         .update({ verification_status: 'pending' })
-        .eq('id', user.id);
+        .eq('user_id', user.id);
       if (error) throw error;
       toast.success('Submitted for review successfully!');
       // Assuming useLawyerProfile handles refreshing or we just update local state
