@@ -38,6 +38,7 @@ import ClientMyPosts from './pages/ClientMyPosts/ClientMyPosts';
 import AdminOverview from './pages/Admin/AdminOverview';
 import UsersManagement from './pages/Admin/UsersManagement';
 import LawyerVerifications from './pages/Admin/LawyerVerifications';
+import ClientVerifications from './pages/Admin/ClientVerifications';
 import CategoryManagement from './pages/Admin/CategoryManagement';
 import JobsManagement from './pages/Admin/JobsManagement';
 import FlaggedReviews from './pages/Admin/FlaggedReviews';
@@ -206,6 +207,7 @@ function App() {
                     <Route path="users" element={<UsersManagement />} />
                     <Route path="lawyers" element={<UsersManagement />} />
                     <Route path="verifications" element={<LawyerVerifications />} />
+                    <Route path="client-verifications" element={<ClientVerifications />} />
                     <Route path="categories" element={<CategoryManagement />} />
                     <Route path="jobs" element={<JobsManagement />} />
                     <Route path="reviews" element={<FlaggedReviews />} />
