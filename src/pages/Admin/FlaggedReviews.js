@@ -30,8 +30,8 @@ const FlaggedReviews = () => {
           ...rawReviews.map(r => r.lawyer_id).filter(Boolean)
         ])];
         if (userIds.length > 0) {
-          const { data: usersData } = await supabase.from('users').select('id, name, full_name, profile_picture_url').in('id', userIds).catch(() => ({ data: [] }));
-          if (usersData) usersData.forEach(u => { userMap[u.id] = u; });
+          let usersData = []; try { const r = await supabase.from('users').select('id, name, full_name, profile_picture_url').in('id', userIds); usersData = r.data || []; } catch (e) {}
+          usersData.forEach(u => { userMap[u.id] = u; });
         }
       }
 

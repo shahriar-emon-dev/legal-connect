@@ -24,16 +24,23 @@ export default function useRealtimeChat(workspaceId) {
     setIsLoading(true);
     setError(null);
 
-    supabase.from('messages')
-      .select('*')
-      .eq('workspace_id', workspaceId)
-      .order('created_at', { ascending: true })
-      .then(({ data, error: fetchErr }) => {
+    const loadMessages = async () => {
+      try {
+        const { data, error: fetchErr } = await supabase.from('messages')
+          .select('*')
+          .eq('workspace_id', workspaceId)
+          .order('created_at', { ascending: true });
+        
         if (fetchErr) throw fetchErr;
         setMessages(data || []);
-      })
-      .catch((err) => setError(err.message || 'Failed to load messages'))
-      .finally(() => setIsLoading(false));
+      } catch (err) {
+        setError(err.message || 'Failed to load messages');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadMessages();
   }, [workspaceId]);
 
   // Realtime listeners

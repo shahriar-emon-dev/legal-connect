@@ -17,17 +17,12 @@ const JobsManagement = () => {
     try {
       setLoading(true);
       
-      const [
-        { data: postsData },
-        { data: jobsData },
-        { data: deptsData }
-      ] = await Promise.all([
-        supabase.from('job_posts').select('*').order('created_at', { ascending: false }).catch(() => ({ data: [] })),
-        supabase.from('jobs').select('*').order('created_at', { ascending: false }).catch(() => ({ data: [] })),
-        supabase.from('departments').select('*').catch(() => ({ data: [] }))
-      ]);
+      let postsData = [], jobsData = [], deptsData = [];
+      try { const r = await supabase.from('job_posts').select('*').order('created_at', { ascending: false }); postsData = r.data || []; } catch (e) {}
+      try { const r = await supabase.from('jobs').select('*').order('created_at', { ascending: false }); jobsData = r.data || []; } catch (e) {}
+      try { const r = await supabase.from('departments').select('*'); deptsData = r.data || []; } catch (e) {}
 
-      const allJobsRaw = [...(postsData || []), ...(jobsData || [])];
+      const allJobsRaw = [...postsData, ...jobsData];
       const uniqueMap = new Map();
       allJobsRaw.forEach(j => {
         if (j.id && !uniqueMap.has(j.id)) uniqueMap.set(j.id, j);
@@ -42,8 +37,8 @@ const JobsManagement = () => {
       const clientIds = [...new Set(list.map(j => j.client_id).filter(Boolean))];
       let userMap = {};
       if (clientIds.length > 0) {
-        const { data: usersList } = await supabase.from('users').select('id, name, full_name, email').in('id', clientIds).catch(() => ({ data: [] }));
-        if (usersList) usersList.forEach(u => { userMap[u.id] = u; });
+        let usersList = []; try { const r = await supabase.from('users').select('id, name, full_name, email').in('id', clientIds); usersList = r.data || []; } catch (e) {}
+        usersList.forEach(u => { userMap[u.id] = u; });
       }
 
       const deptMap = {};

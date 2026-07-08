@@ -52,18 +52,51 @@ const LawyerSearch = () => {
   const fetchLawyers = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('lawyers')
-        .select('*, user:users(name, profile_picture_url)', { count: 'exact' })
-        .eq('is_verified', true)
-        .lte('hourly_rate', maxRate);
+      let data = null, error = null;
+      
+      // Try with relational join first
+      try {
+        let query = supabase
+          .from('lawyers')
+          .select('*, user:users(name, profile_picture_url)', { count: 'exact' })
+          .eq('is_verified', true)
+          .lte('hourly_rate', maxRate);
 
-      if (locationQuery) {
-        query = query.ilike('location', `%${locationQuery}%`);
+        if (locationQuery) {
+          query = query.ilike('location', `%${locationQuery}%`);
+        }
+
+        const result = await query;
+        data = result.data;
+        error = result.error;
+      } catch (e) {}
+
+      // If join failed, fallback to independent queries
+      if (error || !data) {
+        let query = supabase
+          .from('lawyers')
+          .select('*', { count: 'exact' })
+          .eq('is_verified', true)
+          .lte('hourly_rate', maxRate);
+
+        if (locationQuery) {
+          query = query.ilike('location', `%${locationQuery}%`);
+        }
+
+        const result = await query;
+        if (result.error) throw result.error;
+        data = result.data || [];
+
+        // Enrich with user data independently
+        const userIds = [...new Set(data.map(l => l.user_id).filter(Boolean))];
+        if (userIds.length > 0) {
+          let usersData = [];
+          try { const r = await supabase.from('users').select('id, name, profile_picture_url').in('id', userIds); usersData = r.data || []; } catch (e) {}
+          const userMap = {};
+          usersData.forEach(u => { userMap[u.id] = u; });
+          data = data.map(l => ({ ...l, user: userMap[l.user_id] || { name: 'Lawyer', profile_picture_url: null } }));
+        }
       }
-
-      const { data, error } = await query;
-      if (error) throw error;
 
       // Also fetch lawyer_expertise_junction for relational matching
       const { data: junctionData } = await supabase

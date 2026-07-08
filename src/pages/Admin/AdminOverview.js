@@ -49,8 +49,7 @@ const AdminOverview = () => {
     fetchDashboardData();
   }, []);
 
-  // Fix 5: Real-time subscription for live admin dashboard updates
-  // Fix 5: Real-time subscription for live admin dashboard updates
+  // Real-time subscription for live admin dashboard updates
   useEffect(() => {
     const channel = supabase.channel('admin_dashboard_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => fetchDashboardData())
@@ -123,8 +122,9 @@ const AdminOverview = () => {
       // Resilient Recent Jobs (fetch from job_posts and jobs, then manually enrich clients)
       let jData = [];
       try {
-        const { data: posts } = await supabase.from('job_posts').select('*').order('created_at', { ascending: false }).limit(5).catch(() => ({ data: [] }));
-        const { data: jobsList } = await supabase.from('jobs').select('*').order('created_at', { ascending: false }).limit(5).catch(() => ({ data: [] }));
+        let posts = [], jobsList = [];
+        try { const r1 = await supabase.from('job_posts').select('*').order('created_at', { ascending: false }).limit(5); posts = r1.data || []; } catch (e) {}
+        try { const r2 = await supabase.from('jobs').select('*').order('created_at', { ascending: false }).limit(5); jobsList = r2.data || []; } catch (e) {}
         
         const allJobs = [...(posts || []), ...(jobsList || [])];
         const uniqueJobsMap = new Map();
@@ -134,7 +134,7 @@ const AdminOverview = () => {
         const clientIds = [...new Set(sortedJobs.map(j => j.client_id).filter(Boolean))];
         let userMap = {};
         if (clientIds.length > 0) {
-          const { data: usersData } = await supabase.from('users').select('id, name, full_name, email').in('id', clientIds).catch(() => ({ data: [] }));
+          let usersData = []; try { const r = await supabase.from('users').select('id, name, full_name, email').in('id', clientIds); usersData = r.data || []; } catch (e) {}
           if (usersData) usersData.forEach(u => { userMap[u.id] = u; });
         }
 
@@ -150,19 +150,19 @@ const AdminOverview = () => {
       // Resilient Recent Proposals
       let prData = [];
       try {
-        const { data: props } = await supabase.from('job_proposals').select('*').order('created_at', { ascending: false }).limit(5).catch(() => ({ data: [] }));
+        let props = []; try { const r = await supabase.from('job_proposals').select('*').order('created_at', { ascending: false }).limit(5); props = r.data || []; } catch (e) {}
         if (props && props.length > 0) {
           const lawyerIds = [...new Set(props.map(p => p.lawyer_id).filter(Boolean))];
           const jobIds = [...new Set(props.map(p => p.job_post_id).filter(Boolean))];
 
           let lMap = {}, jMap = {};
           if (lawyerIds.length > 0) {
-            const { data: lUsers } = await supabase.from('users').select('id, name, full_name, email').in('id', lawyerIds).catch(() => ({ data: [] }));
-            if (lUsers) lUsers.forEach(u => { lMap[u.id] = u; });
+            let lUsers = []; try { const r = await supabase.from('users').select('id, name, full_name, email').in('id', lawyerIds); lUsers = r.data || []; } catch (e) {}
+            lUsers.forEach(u => { lMap[u.id] = u; });
           }
           if (jobIds.length > 0) {
-            const { data: jPosts } = await supabase.from('job_posts').select('id, title').in('id', jobIds).catch(() => ({ data: [] }));
-            if (jPosts) jPosts.forEach(jp => { jMap[jp.id] = jp; });
+            let jPosts = []; try { const r = await supabase.from('job_posts').select('id, title').in('id', jobIds); jPosts = r.data || []; } catch (e) {}
+            jPosts.forEach(jp => { jMap[jp.id] = jp; });
           }
 
           prData = props.map(prop => ({
@@ -179,13 +179,13 @@ const AdminOverview = () => {
       // Resilient Lawyer Payouts & Earnings Breakdown
       let lPayouts = [];
       try {
-        const { data: pData } = await supabase.from('lawyer_payouts').select('*').order('total_earned', { ascending: false }).limit(6).catch(() => ({ data: [] }));
+        let pData = []; try { const r = await supabase.from('lawyer_payouts').select('*').order('total_earned', { ascending: false }).limit(6); pData = r.data || []; } catch (e) {}
         if (pData && pData.length > 0) {
           const lawyerIds = [...new Set(pData.map(p => p.lawyer_id).filter(Boolean))];
           let userMap = {};
           if (lawyerIds.length > 0) {
-            const { data: usersData } = await supabase.from('users').select('id, name, email').in('id', lawyerIds).catch(() => ({ data: [] }));
-            if (usersData) usersData.forEach(u => { userMap[u.id] = u; });
+            let usersData = []; try { const r = await supabase.from('users').select('id, name, email').in('id', lawyerIds); usersData = r.data || []; } catch (e) {}
+            usersData.forEach(u => { userMap[u.id] = u; });
           }
           lPayouts = pData.map(item => ({
             ...item,
@@ -193,13 +193,13 @@ const AdminOverview = () => {
           }));
         } else {
           // Fallback: if lawyer_payouts table is empty, show top verified lawyers
-          const { data: topLawyers } = await supabase.from('lawyers').select('*').eq('verification_status', 'verified').limit(6).catch(() => ({ data: [] }));
+          let topLawyers = []; try { const r = await supabase.from('lawyers').select('*').eq('verification_status', 'verified').limit(6); topLawyers = r.data || []; } catch (e) {}
           if (topLawyers && topLawyers.length > 0) {
             const userIds = topLawyers.map(l => l.user_id).filter(Boolean);
             let uMap = {};
             if (userIds.length > 0) {
-              const { data: uList } = await supabase.from('users').select('id, name, email').in('id', userIds).catch(() => ({ data: [] }));
-              if (uList) uList.forEach(u => { uMap[u.id] = u; });
+              let uList = []; try { const r = await supabase.from('users').select('id, name, email').in('id', userIds); uList = r.data || []; } catch (e) {}
+              uList.forEach(u => { uMap[u.id] = u; });
             }
             lPayouts = topLawyers.map(tl => ({
               id: tl.id,

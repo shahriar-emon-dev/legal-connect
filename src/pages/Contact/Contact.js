@@ -150,8 +150,8 @@ const Contact = () => {
         res = await supabase.from('contact_inquiries').insert([fallbackObj]);
         if (res.error) {
           // Additional resilience: try contact_messages or contacts tables, or local storage
-          await supabase.from('contact_messages').insert([inquiryObj]).catch(() => {});
-          await supabase.from('contacts').insert([inquiryObj]).catch(() => {});
+          try { await supabase.from('contact_messages').insert([inquiryObj]); } catch (e) {}
+          try { await supabase.from('contacts').insert([inquiryObj]); } catch (e) {}
           const localList = JSON.parse(localStorage.getItem('local_contact_inquiries') || '[]');
           localList.unshift({ id: `local_${Date.now()}`, ...inquiryObj });
           localStorage.setItem('local_contact_inquiries', JSON.stringify(localList));

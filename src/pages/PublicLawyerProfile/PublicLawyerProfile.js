@@ -211,40 +211,50 @@ const PublicLawyerProfile = () => {
   // Load reviews + updates in parallel after lawyer loads
   useEffect(() => {
     if (!lawyer) return;
-    // Fetch reviews
-    supabase
-      .from('feedback')
-      .select('*, client:users!feedback_client_id_fkey(name)')
-      .eq('lawyer_id', lawyer.user_id)
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
+
+    const fetchRelatedData = async () => {
+      // Fetch reviews
+      try {
+        const { data } = await supabase
+          .from('feedback')
+          .select('*, client:users!feedback_client_id_fkey(name)')
+          .eq('lawyer_id', lawyer.user_id)
+          .order('created_at', { ascending: false });
         const mapped = (data || []).map(r => ({ ...r, client_name: r.client?.name || 'Client' }));
         setReviews(mapped);
-      })
-      .catch(() => setReviews([]));
+      } catch (e) {
+        setReviews([]);
+      }
 
-    // Fetch legal updates by this lawyer
-    supabase
-      .from('legal_updates')
-      .select('*')
-      .eq('author_id', lawyer.user_id)
-      .order('created_at', { ascending: false })
-      .limit(3)
-      .then(({ data }) => setUpdates(data || []))
-      .catch(() => setUpdates([]));
+      // Fetch legal updates by this lawyer
+      try {
+        const { data } = await supabase
+          .from('legal_updates')
+          .select('*')
+          .eq('author_id', lawyer.user_id)
+          .order('created_at', { ascending: false })
+          .limit(3);
+        setUpdates(data || []);
+      } catch (e) {
+        setUpdates([]);
+      }
 
-    // Check for existing contract if logged in as client
-    if (isLoggedIn && isClient) {
-      supabase
-        .from('contracts')
-        .select('id, lawyer_id, status')
-        .eq('lawyer_id', lawyer.user_id)
-        .eq('status', 'active')
-        .limit(1)
-        .maybeSingle()
-        .then(({ data }) => setContract(data || null))
-        .catch(() => {});
-    }
+      // Check for existing contract if logged in as client
+      if (isLoggedIn && isClient) {
+        try {
+          const { data } = await supabase
+            .from('contracts')
+            .select('id, lawyer_id, status')
+            .eq('lawyer_id', lawyer.user_id)
+            .eq('status', 'active')
+            .limit(1)
+            .maybeSingle();
+          setContract(data || null);
+        } catch (e) {}
+      }
+    };
+
+    fetchRelatedData();
   }, [lawyer, isLoggedIn, isClient]);
 
   // SEO meta tags

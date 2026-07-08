@@ -30,7 +30,7 @@ const AdminSettings = () => {
   const fetchSettingsData = async () => {
     try {
       setLoading(true);
-      const { data: deptsData } = await supabase.from('departments').select('*').order('name').catch(() => ({ data: [] }));
+      let deptsData = []; try { const r = await supabase.from('departments').select('*').order('name'); deptsData = r.data || []; } catch (e) {}
       setDepartments(deptsData || []);
 
       let allInquiries = [];
@@ -113,8 +113,8 @@ const AdminSettings = () => {
         const updatedLocal = localList.map(i => i.id === id ? { ...i, status } : i);
         localStorage.setItem('local_contact_inquiries', JSON.stringify(updatedLocal));
       } else {
-        await supabase.from('contact_inquiries').update({ status }).eq('id', id).catch(() => {});
-        await supabase.from('contact_messages').update({ status }).eq('id', id).catch(() => {});
+        try { await supabase.from('contact_inquiries').update({ status }).eq('id', id); } catch (e) {}
+        try { await supabase.from('contact_messages').update({ status }).eq('id', id); } catch (e) {}
       }
       
       setInquiries(prev => prev.map(i => i.id === id ? { ...i, status } : i));
@@ -133,8 +133,8 @@ const AdminSettings = () => {
         const updatedLocal = localList.filter(i => i.id !== id);
         localStorage.setItem('local_contact_inquiries', JSON.stringify(updatedLocal));
       } else {
-        await supabase.from('contact_inquiries').delete().eq('id', id).catch(() => {});
-        await supabase.from('contact_messages').delete().eq('id', id).catch(() => {});
+        try { await supabase.from('contact_inquiries').delete().eq('id', id); } catch (e) {}
+        try { await supabase.from('contact_messages').delete().eq('id', id); } catch (e) {}
       }
       
       setInquiries(prev => prev.filter(i => i.id !== id));

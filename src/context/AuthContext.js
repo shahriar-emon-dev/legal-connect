@@ -22,7 +22,7 @@ export function AuthProvider({ children }) {
     let cancelled = false;
 
     const fetchPublicUser = async (email) => {
-      const { data, error } = await supabase.from('users').select('id, auth_id, user_type, name, profile_picture_url').eq('email', email).maybeSingle();
+      const { data, error } = await supabase.from('users').select('id, auth_id, user_type, role, name, profile_picture_url').eq('email', email).maybeSingle();
       if (error && error.code !== 'PGRST116') {
         console.warn(`AuthContext: fetch public user error:`, error);
       }

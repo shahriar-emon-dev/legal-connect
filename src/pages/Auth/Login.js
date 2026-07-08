@@ -17,9 +17,29 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userType');
-  }, []);
+    // Only clear legacy tokens if no active Supabase session exists
+    const checkExistingSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          // User is already logged in — redirect to appropriate dashboard
+          const { data: publicUser } = await supabase.from('users').select('user_type, role').eq('auth_id', session.user.id).maybeSingle();
+          const role = publicUser?.user_type || publicUser?.role || session.user.user_metadata?.role || 'client';
+          let target = '/client/dashboard';
+          if (role === 'lawyer') target = '/lawyer-suite/dashboard';
+          else if (role === 'admin') target = '/admin';
+          navigate(redirect || target, { replace: true });
+          return;
+        }
+      } catch (e) {
+        // Session check failed — proceed to login form
+      }
+      // No active session — safe to clear legacy tokens
+      localStorage.removeItem('token');
+      localStorage.removeItem('userType');
+    };
+    checkExistingSession();
+  }, [navigate, redirect]);
 
   const validate = () => {
     const e = {};
