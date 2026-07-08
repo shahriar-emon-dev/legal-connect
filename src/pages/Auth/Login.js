@@ -73,11 +73,33 @@ const Login = () => {
 
       if (data.session && data.user) {
         const u = data.user;
+        
+        // Timeout utility to prevent database locks from hanging the login forever
+        const withTimeout = (promise, ms) => {
+          return Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Database query timeout')), ms))
+          ]);
+        };
+
         // Fetch user profile from database to ensure complete role and profile hydration
-        let { data: publicUser } = await supabase.from('users').select('*').eq('auth_id', u.id).maybeSingle();
-        if (!publicUser) {
-          const { data: byEmail } = await supabase.from('users').select('*').eq('email', u.email).maybeSingle();
-          publicUser = byEmail;
+        let publicUser = null;
+        try {
+          const res = await withTimeout(
+            supabase.from('users').select('*').eq('auth_id', u.id).maybeSingle(),
+            5000
+          );
+          publicUser = res.data;
+          
+          if (!publicUser) {
+            const resByEmail = await withTimeout(
+              supabase.from('users').select('*').eq('email', u.email).maybeSingle(),
+              5000
+            );
+            publicUser = resByEmail.data;
+          }
+        } catch (err) {
+          console.warn('Profile lookup timed out or failed, proceeding with graceful fallback:', err);
         }
 
         const userRole = publicUser?.user_type || publicUser?.role || u.user_metadata?.role || u.user_metadata?.user_type || 'client';
