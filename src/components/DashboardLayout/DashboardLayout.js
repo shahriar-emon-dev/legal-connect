@@ -8,7 +8,7 @@ import { Outlet } from 'react-router-dom';
  */
 const DashboardLayout = () => {
   return (
-    <div className="dashboard-layout min-h-screen bg-[#F8F9FF] text-[#041635] overflow-hidden">
+    <div className="dashboard-layout min-h-screen bg-[#F8F9FF] text-[#041635] w-full max-w-full overflow-x-hidden">
       <Outlet />
     </div>
   );

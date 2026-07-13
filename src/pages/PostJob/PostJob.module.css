@@ -1,43 +1,103 @@
-.page { min-height: calc(100vh - 160px); padding: 2rem; background: #F5F6FA; }
-
-.container {
-  max-width: 720px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 8px;
-  padding: 2.5rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+/* Responsive fluid wrapper and container definitions for Post a Legal Case */
+.page {
+  min-height: 100vh;
+  height: auto;
+  padding: clamp(1rem, 3vw, 3rem) clamp(0.75rem, 4vw, 2.5rem);
+  background: #F5F6FA;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
-.container h1 { margin: 0 0 0.5rem; color: #1A1F2E; font-size: 1.8rem; }
-.subtitle { color: #6B7280; margin: 0 0 2rem; }
+.container {
+  width: 100%;
+  max-width: 840px;
+  margin: 0 auto;
+  background: white;
+  border-radius: clamp(12px, 2vw, 24px);
+  padding: clamp(1.25rem, 4vw, 3rem);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  box-sizing: border-box;
+}
 
-.form { display: flex; flex-direction: column; gap: 1.5rem; }
+.container h1 {
+  margin: 0 0 0.5rem;
+  color: #1A1F2E;
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  line-height: 1.25;
+  word-wrap: break-word;
+}
 
-.field { display: flex; flex-direction: column; gap: 0.4rem; }
+.subtitle {
+  color: #6B7280;
+  margin: 0 0 2rem;
+  font-size: clamp(0.85rem, 2vw, 1.05rem);
+  line-height: 1.5;
+}
 
-.field label { font-weight: 600; font-size: 0.9rem; color: #1A1F2E; }
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field label {
+  font-weight: 600;
+  font-size: clamp(0.8rem, 1.8vw, 0.95rem);
+  color: #1A1F2E;
+  word-wrap: break-word;
+}
 
 .field input,
 .field select,
 .field textarea {
-  padding: 0.65rem 0.9rem;
-  border: 1px solid rgba(15,42,94,0.15);
-  border-radius: 4px;
-  font-size: 0.95rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: clamp(0.65rem, 2vw, 0.9rem) clamp(0.75rem, 2.5vw, 1rem);
+  border: 1px solid rgba(15,42,94,0.2);
+  border-radius: 8px;
+  font-size: clamp(0.875rem, 2vw, 1rem);
   font-family: inherit;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: #FFFFFF;
 }
 
 .field input:focus,
 .field select:focus,
-.field textarea:focus { outline: none; border-color: #0E7490; }
+.field textarea:focus {
+  outline: none;
+  border-color: #0E7490;
+  box-shadow: 0 0 0 3px rgba(14,116,144,0.12);
+}
 
-.err { color: #DC2626; font-size: 0.8rem; }
+.err {
+  color: #DC2626;
+  font-size: clamp(0.75rem, 1.5vw, 0.85rem);
+}
 
-.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; }
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+  width: 100%;
+  box-sizing: border-box;
+}
 
-.urgentField { justify-content: flex-end; }
+.urgentField {
+  justify-content: flex-end;
+}
 
 .checkLabel {
   display: flex;
@@ -45,32 +105,82 @@
   gap: 0.5rem;
   cursor: pointer;
   font-weight: 400 !important;
-  font-size: 0.95rem;
-  padding-top: 1.6rem;
+  font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+  padding-top: 0.5rem;
+  word-wrap: break-word;
 }
 
-.actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 0.5rem; }
+/* Natural Document-Flow Actions (No overlap, no sticky trap) */
+.actions {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(15,42,94,0.12);
+  box-sizing: border-box;
+  width: 100%;
+}
 
 .cancelBtn {
   background: none;
-  border: 1px solid rgba(15,42,94,0.2);
-  border-radius: 4px;
-  padding: 0.65rem 1.5rem;
+  border: 1px solid rgba(15,42,94,0.25);
+  border-radius: 8px;
+  padding: clamp(0.65rem, 2vw, 0.8rem) clamp(1.25rem, 3vw, 1.75rem);
   cursor: pointer;
   color: #6B7280;
-  font-size: 0.95rem;
+  font-size: clamp(0.875rem, 2vw, 0.95rem);
+  font-weight: 600;
+  transition: all 0.2s;
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.cancelBtn:hover {
+  background: rgba(15,42,94,0.05);
+  color: #1A1F2E;
 }
 
 .submitBtn {
   background: #0F2A5E;
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 0.65rem 2rem;
+  border-radius: 8px;
+  padding: clamp(0.65rem, 2vw, 0.8rem) clamp(1.5rem, 4vw, 2.25rem);
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.95rem;
-  transition: background 0.2s;
+  font-size: clamp(0.875rem, 2vw, 0.95rem);
+  transition: all 0.2s;
+  flex: 1 1 auto;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
-.submitBtn:hover:not(:disabled) { background: #0E7490; }
-.submitBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.submitBtn:hover:not(:disabled) {
+  background: #0E7490;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(14,116,144,0.25);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Media query overrides for zoom levels and small screens */
+@media (max-width: 640px) {
+  .actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .cancelBtn, .submitBtn {
+    width: 100%;
+  }
+}

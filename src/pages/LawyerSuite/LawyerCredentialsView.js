@@ -37,12 +37,16 @@ const LawyerCredentialsView = () => {
   const [verifForm, setVerifForm] = useState({ license_number: '', authority_name: '', issue_date: '', expiry_date: '', is_primary: false });
 
   const fetchAll = useCallback(async () => {
-    if (!user) return;
+    const lawyerId = user?.id || user?.auth_id;
+    if (!lawyerId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const [credRes, verRes] = await Promise.all([
-        supabase.from('credentials').select('*').eq('lawyer_id', user.id),
-        supabase.from('verifications').select('*').eq('lawyer_id', user.id)
+        supabase.from('credentials').select('*').or(`lawyer_id.eq.${lawyerId},lawyer_id.eq.${user?.auth_id || lawyerId}`),
+        supabase.from('verifications').select('*').or(`lawyer_id.eq.${lawyerId},lawyer_id.eq.${user?.auth_id || lawyerId}`)
       ]);
 
       if (credRes.data) {
@@ -59,15 +63,19 @@ const LawyerCredentialsView = () => {
         });
       }
     } catch (err) {
-      console.error('Error fetching credentials:', err);
+      console.error('Error loading credentials/verifications:', err);
     } finally {
       setLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+    if (user?.id || user?.auth_id) {
+      fetchAll();
+    } else {
+      setLoading(false);
+    }
+  }, [user?.id, user?.auth_id, fetchAll]);
 
   const handleCredSubmit = async (e) => {
     e.preventDefault();

@@ -1,142 +1,428 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { SkeletonCard } from '../../components/Skeleton/Skeleton';
 import toast from 'react-hot-toast';
 import styles from './CaseTracking.module.css';
 
 const STATUS_COLORS = {
-  active:    '#0F2A5E',
-  on_hold:   '#C8920A',
-  closed:    '#1E6B4A',
-  archived:  '#6B7280',
+  open: '#10B981',              // Emerald
+  pending: '#D97706',           // Amber
+  pending_acceptance: '#D97706',// Amber
+  in_progress: '#2563EB',       // Blue
+  active: '#2563EB',            // Blue
+  confirmed: '#2563EB',         // Blue
+  completed: '#7C3AED',         // Purple
+  closed: '#6B7280',            // Gray
+  cancelled: '#EF4444',         // Red
+  terminated: '#EF4444',        // Red
+  archived: '#4B5563',          // Gray
 };
 
 const STATUS_LABELS = {
-  active:   'In Progress',
-  on_hold:  'On Hold',
-  closed:   'Completed',
+  open: 'Open for Proposals',
+  pending: 'Pending Selection',
+  pending_acceptance: 'Pending Acceptance',
+  in_progress: 'In Progress',
+  active: 'In Progress',
+  confirmed: 'Consultation Active',
+  completed: 'Completed',
+  closed: 'Closed',
+  cancelled: 'Cancelled',
+  terminated: 'Terminated',
   archived: 'Archived',
 };
 
-const CaseTracking = ({ inline = false }) => {
+const URGENCY_STYLES = {
+  high: { bg: '#FEF2F2', color: '#DC2626', border: '#FECACA', label: 'High Urgency' },
+  medium: { bg: '#EFF6FF', color: '#2563EB', border: '#BFDBFE', label: 'Normal Urgency' },
+  low: { bg: '#ECFDF5', color: '#059669', border: '#A7F3D0', label: 'Low Urgency' },
+  default: { bg: '#F3F4F6', color: '#4B5563', border: '#E5E7EB', label: 'Standard' }
+};
+
+const CaseTracking = () => {
   const { user } = useAuth();
   const { caseId } = useParams();
   const navigate = useNavigate();
-  const [cases, setCases] = useState([]);
+
+  // Data states
+  const [items, setItems] = useState([]);
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [errorState, setErrorState] = useState(false);
 
-  useEffect(() => {
-    const fetchCases = async () => {
-      if (!user) return;
+  // Filter & Search & Modal states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [sortOrder, setSortOrder] = useState('UPDATED_DESC');
+  const [selectedCaseModal, setSelectedCaseModal] = useState(null);
+
+  const fetchDashboardData = useCallback(async (isManualRefresh = false) => {
+    const clientId = user?.id || user?.auth_id;
+    if (!clientId) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (isManualRefresh) setRefreshing(true);
+      else setLoading(true);
+      setErrorState(false);
+
+      const userIds = [...new Set([clientId, user?.auth_id, user?.id].filter(Boolean))];
+
+      // 1. Fetch Job Posts created by this client
+      let rawJobPosts = [];
       try {
-        const currentUserId = user?.id;
-        if (!currentUserId) {
-          setCases([]);
-          setLoading(false);
-          return;
-        }
-
-        const { data: casesData, error } = await supabase
-          .from('cases')
-          .select('*, lawyer:users!cases_lawyer_id_fkey(id, name, profile_picture_url), case_progress(*)')
-          .or(`client_id.eq.${currentUserId},lawyer_id.eq.${currentUserId}`)
+        const { data: jobPostsData } = await supabase
+          .from('job_posts')
+          .select('*')
+          .or(userIds.map(id => `client_id.eq.${id}`).join(','))
           .order('updated_at', { ascending: false });
+        if (jobPostsData) rawJobPosts = jobPostsData;
+      } catch (e) {
+        console.error('Job posts fetch error:', e);
+      }
 
-        if (error) throw error;
-        
-        let casesList = casesData || [];
-        if (casesList.length > 0) {
-          const caseIds = casesList.map(c => c.id);
-          const { data: msData } = await supabase.from('case_milestones').select('*').in('case_id', caseIds);
+      // 2. Fetch Proposals for these job posts to get counts and lawyer info
+      const postIds = rawJobPosts.map(p => p.id);
+      let pMap = {};
+      let allLawyerIds = new Set();
+
+      rawJobPosts.forEach(p => {
+        if (p.selected_lawyer_id) allLawyerIds.add(p.selected_lawyer_id);
+      });
+
+      if (postIds.length > 0) {
+        try {
+          const { data: propsData } = await supabase
+            .from('job_proposals')
+            .select('*')
+            .in('job_post_id', postIds);
+
+          if (propsData) {
+            propsData.forEach(prop => {
+              if (!pMap[prop.job_post_id]) pMap[prop.job_post_id] = [];
+              pMap[prop.job_post_id].push(prop);
+              if (prop.lawyer_id) allLawyerIds.add(prop.lawyer_id);
+            });
+          }
+        } catch (e) {
+          console.error('Proposals fetch error:', e);
+        }
+      }
+
+      // 3. Fetch formal cases where client is participant
+      let casesList = [];
+      try {
+        const { data: casesData } = await supabase
+          .from('cases')
+          .select('*, case_progress(*)')
+          .or(userIds.map(id => `client_id.eq.${id}`).join(','))
+          .order('updated_at', { ascending: false });
+        if (casesData) {
+          casesList = casesData;
+          casesList.forEach(c => { if (c.lawyer_id) allLawyerIds.add(c.lawyer_id); });
+        }
+      } catch (e) {
+        console.error('Cases fetch error:', e);
+      }
+
+      // Fetch milestones if cases exist
+      if (casesList.length > 0) {
+        try {
+          const cIds = casesList.map(c => c.id);
+          const { data: msData } = await supabase.from('case_milestones').select('*').in('case_id', cIds);
           if (msData) {
             casesList = casesList.map(c => ({
               ...c,
               milestones: msData.filter(m => m.case_id === c.id)
             }));
           }
+        } catch (e) {
+          console.error('Milestones fetch error:', e);
         }
+      }
 
+      // 4. Fetch Contracts
+      let contractsList = [];
+      try {
         const { data: cData } = await supabase
           .from('contracts')
-          .select('*, lawyer:users!contracts_lawyer_id_fkey(id, name, profile_picture_url)')
-          .eq('client_id', currentUserId)
+          .select('*')
+          .or(userIds.map(id => `client_id.eq.${id}`).join(','))
           .order('created_at', { ascending: false });
-        if (cData) setContracts(cData);
-
-        const { data: aptData } = await supabase
-          .from('appointments')
-          .select('*, lawyer:users!appointments_lawyer_id_fkey(id, name, profile_picture_url)')
-          .eq('client_id', currentUserId)
-          .in('status', ['confirmed', 'active', 'Upcoming', 'In Progress', 'pending_negotiation']);
-
-        const mergedMap = new Map();
-        casesList.forEach(c => mergedMap.set(String(c.id), c));
-
         if (cData) {
-          cData.forEach(cnt => {
-            if (cnt.case_id && mergedMap.has(String(cnt.case_id))) {
-              const existing = mergedMap.get(String(cnt.case_id));
-              existing.contract = cnt;
-              existing.agreed_fee = cnt.amount || cnt.agreed_amount;
-              existing.outstanding_balance = cnt.outstanding_balance;
-            } else if (!cnt.case_id || !mergedMap.has(String(cnt.case_id))) {
-              const synthId = cnt.case_id || `contract_${cnt.id}`;
-              mergedMap.set(String(synthId), {
-                id: synthId,
-                title: cnt.title || 'Legal Contract Matter',
-                description: cnt.terms || 'Contract representation matter.',
-                status: cnt.status?.toLowerCase() === 'active' ? 'active' : 'pending',
-                case_type: 'Full Representation',
-                lawyer: cnt.lawyer,
-                lawyer_id: cnt.lawyer_id,
-                client_id: cnt.client_id,
-                contract: cnt,
-                agreed_fee: cnt.amount || cnt.agreed_amount,
-                outstanding_balance: cnt.outstanding_balance,
-                updated_at: cnt.updated_at || cnt.created_at
-              });
-            }
-          });
+          contractsList = cData;
+          setContracts(cData);
+          cData.forEach(cnt => { if (cnt.lawyer_id) allLawyerIds.add(cnt.lawyer_id); });
         }
-
-        if (aptData) {
-          aptData.forEach(apt => {
-            const existsByLinked = Array.from(mergedMap.values()).some(c => String(c.linked_appointment_id) === String(apt.id));
-            if (!existsByLinked) {
-              const synthId = `consultation_${apt.id}`;
-              mergedMap.set(String(synthId), {
-                id: synthId,
-                linked_appointment_id: apt.id,
-                title: apt.session_type ? `${apt.session_type} (${apt.reason})` : (apt.reason || 'Consultation Matter'),
-                description: apt.notes || apt.reason || 'Active consultation matter.',
-                status: apt.status === 'confirmed' || apt.status === 'active' || apt.status === 'Upcoming' || apt.status === 'In Progress' ? 'active' : 'pending',
-                case_type: 'Consultation',
-                medium: apt.medium || 'video_call',
-                lawyer: apt.lawyer,
-                lawyer_id: apt.lawyer_id,
-                client_id: apt.client_id,
-                agreed_fee: apt.agreed_fee || apt.fee_amount,
-                updated_at: apt.updated_at || apt.created_at
-              });
-            }
-          });
-        }
-
-        setCases(Array.from(mergedMap.values()));
-
-      } catch (err) {
-        console.error('Error fetching cases:', err.message, err.code, err);
-        setCases([]);
-        setContracts([]);
-      } finally {
-        setLoading(false);
+      } catch (e) {
+        console.error('Contracts fetch error:', e);
       }
-    };
-    fetchCases();
-  }, [user]);
+
+      // 5. Fetch Appointments / Consultations
+      let aptData = [];
+      try {
+        const { data } = await supabase
+          .from('appointments')
+          .select('*')
+          .or(userIds.map(id => `client_id.eq.${id}`).join(','))
+          .in('status', ['confirmed', 'active', 'Upcoming', 'In Progress', 'pending_negotiation', 'completed']);
+        if (data) {
+          aptData = data;
+          aptData.forEach(apt => { if (apt.lawyer_id) allLawyerIds.add(apt.lawyer_id); });
+        }
+      } catch (e) {
+        console.error('Appointments fetch error:', e);
+      }
+
+      // 6. Safely fetch all lawyer/user profiles right now
+      let lawyerInfoMap = {};
+      const lawyerIdsList = Array.from(allLawyerIds).filter(Boolean);
+      if (lawyerIdsList.length > 0) {
+        try {
+          const { data: uData } = await supabase
+            .from('users')
+            .select('id, name, profile_picture_url')
+            .in('id', lawyerIdsList);
+          if (uData) {
+            uData.forEach(u => { lawyerInfoMap[u.id] = u; });
+          }
+        } catch (e) {
+          console.warn('Could not fetch lawyer user profiles:', e);
+        }
+      }
+
+      // 7. Merge all matters into a unified dashboard map
+      const mergedMap = new Map();
+
+      // Add Job Posts first as the root items
+      rawJobPosts.forEach(post => {
+        const postProposals = pMap[post.id] || [];
+        const acceptedProp = postProposals.find(p => p.status === 'accepted');
+        const assignedLawyer = post.selected_lawyer_id 
+          ? (lawyerInfoMap[post.selected_lawyer_id] || { id: post.selected_lawyer_id, name: 'Assigned Advocate' })
+          : (acceptedProp?.lawyer || null);
+
+        let normalizedStatus = post.status?.toLowerCase() || 'open';
+        if (normalizedStatus === 'open' && postProposals.length > 0) normalizedStatus = 'pending_acceptance';
+        if (acceptedProp || post.selected_lawyer_id) normalizedStatus = 'in_progress';
+
+        mergedMap.set(String(post.id), {
+          id: post.id,
+          raw_type: 'job_post',
+          title: post.title || 'Legal Representation Matter',
+          practice_area: post.legal_category || post.category || 'General Legal Matter',
+          description: post.description || 'No description provided.',
+          status: normalizedStatus,
+          urgency: post.urgency || 'medium',
+          budget: post.budget_type === 'negotiable' ? 'Negotiable' : (post.budget_max ? `BDT ${Number(post.budget_max).toLocaleString('en-IN')}` : `BDT ${Number(post.budget_min || 0).toLocaleString('en-IN')}`),
+          created_at: post.created_at || new Date().toISOString(),
+          updated_at: post.updated_at || post.created_at || new Date().toISOString(),
+          proposal_count: postProposals.length,
+          lawyer: assignedLawyer,
+          lawyer_id: post.selected_lawyer_id || acceptedProp?.lawyer_id,
+          milestones: [],
+          case_progress: []
+        });
+      });
+
+      // Overlay/Add Formal Cases
+      casesList.forEach(c => {
+        const existingId = c.job_post_id ? String(c.job_post_id) : (mergedMap.has(String(c.id)) ? String(c.id) : null);
+        if (existingId && mergedMap.has(existingId)) {
+          const existing = mergedMap.get(existingId);
+          existing.case_id = c.id;
+          existing.status = c.status?.toLowerCase() === 'active' ? 'in_progress' : (c.status || existing.status);
+          existing.lawyer = c.lawyer || existing.lawyer;
+          existing.lawyer_id = c.lawyer_id || existing.lawyer_id;
+          existing.milestones = c.milestones || [];
+          existing.case_progress = c.case_progress || [];
+          if (c.updated_at && new Date(c.updated_at) > new Date(existing.updated_at)) {
+            existing.updated_at = c.updated_at;
+          }
+        } else {
+          mergedMap.set(String(c.id), {
+            id: c.id,
+            case_id: c.id,
+            raw_type: 'case',
+            title: c.title || 'Legal Case Representation',
+            practice_area: c.case_type || 'Full Representation',
+            description: c.description || 'Active legal case matter.',
+            status: c.status?.toLowerCase() === 'active' ? 'in_progress' : (c.status || 'in_progress'),
+            urgency: 'medium',
+            budget: c.agreed_fee ? `BDT ${Number(c.agreed_fee).toLocaleString('en-IN')}` : 'Contract Fee',
+            created_at: c.created_at || new Date().toISOString(),
+            updated_at: c.updated_at || c.created_at || new Date().toISOString(),
+            proposal_count: 0,
+            lawyer: c.lawyer,
+            lawyer_id: c.lawyer_id,
+            milestones: c.milestones || [],
+            case_progress: c.case_progress || []
+          });
+        }
+      });
+
+      // Overlay/Add Contracts
+      if (contractsList.length > 0) {
+        contractsList.forEach(cnt => {
+          const targetKey = cnt.case_id ? String(cnt.case_id) : (cnt.job_post_id ? String(cnt.job_post_id) : null);
+          if (targetKey && mergedMap.has(targetKey)) {
+            const existing = mergedMap.get(targetKey);
+            existing.contract = cnt;
+            existing.agreed_fee = cnt.amount || cnt.agreed_amount || cnt.retainer_amount;
+            if (cnt.status === 'Active' || cnt.status === 'Signed') existing.status = 'in_progress';
+            else if (cnt.status === 'Pending Review' && existing.status === 'open') existing.status = 'pending_acceptance';
+          } else if (!targetKey) {
+            const synthId = `contract_${cnt.id}`;
+            mergedMap.set(synthId, {
+              id: synthId,
+              raw_type: 'contract',
+              title: cnt.title || 'Legal Contract Matter',
+              practice_area: cnt.fee_structure || 'Contract Representation',
+              description: cnt.terms || 'Legal agreement under review.',
+              status: cnt.status?.toLowerCase() === 'active' ? 'in_progress' : (cnt.status === 'Pending Review' ? 'pending_acceptance' : 'open'),
+              urgency: 'medium',
+              budget: `BDT ${Number(cnt.amount || cnt.agreed_amount || 0).toLocaleString('en-IN')}`,
+              created_at: cnt.created_at || new Date().toISOString(),
+              updated_at: cnt.updated_at || cnt.created_at || new Date().toISOString(),
+              proposal_count: 0,
+              lawyer: cnt.lawyer,
+              lawyer_id: cnt.lawyer_id,
+              contract: cnt,
+              milestones: []
+            });
+          }
+        });
+      }
+
+      // Overlay/Add Appointments
+      if (aptData) {
+        aptData.forEach(apt => {
+          const existsByLinked = Array.from(mergedMap.values()).some(c => String(c.linked_appointment_id) === String(apt.id) || String(c.id) === String(apt.case_id));
+          if (!existsByLinked) {
+            const synthId = `consultation_${apt.id}`;
+            mergedMap.set(synthId, {
+              id: synthId,
+              raw_type: 'appointment',
+              linked_appointment_id: apt.id,
+              title: apt.session_type ? `${apt.session_type} (${apt.reason})` : (apt.reason || 'Legal Consultation'),
+              practice_area: 'Legal Consultation',
+              description: apt.notes || apt.reason || 'Verified consultation booking.',
+              status: apt.status === 'completed' ? 'completed' : 'in_progress',
+              urgency: 'medium',
+              budget: apt.agreed_fee ? `BDT ${Number(apt.agreed_fee).toLocaleString('en-IN')}` : 'Standard Fee',
+              created_at: apt.created_at || new Date().toISOString(),
+              updated_at: apt.updated_at || apt.created_at || new Date().toISOString(),
+              proposal_count: 0,
+              lawyer: apt.lawyer,
+              lawyer_id: apt.lawyer_id,
+              milestones: []
+            });
+          }
+        });
+      }
+
+      const allItems = Array.from(mergedMap.values());
+      setItems(allItems);
+
+      // If highlighted caseId passed in URL, auto open modal
+      if (caseId && allItems.length > 0) {
+        const found = allItems.find(c => String(c.id) === String(caseId) || String(c.case_id) === String(caseId));
+        if (found) setSelectedCaseModal(found);
+      }
+
+    } catch (err) {
+      console.error('Case tracking sync failure:', err);
+      setErrorState(true);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [user, caseId]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  // Live Statistics Calculation
+  const stats = useMemo(() => {
+    const total = items.length;
+    let openCount = 0;
+    let inProgressCount = 0;
+    let completedCount = 0;
+    let pendingAcceptanceCount = 0;
+    let closedCount = 0;
+
+    items.forEach(item => {
+      const st = item.status;
+      if (st === 'open') openCount++;
+      else if (st === 'in_progress' || st === 'active' || st === 'confirmed') inProgressCount++;
+      else if (st === 'completed') completedCount++;
+      else if (st === 'pending_acceptance' || st === 'pending') pendingAcceptanceCount++;
+      else if (st === 'closed' || st === 'cancelled' || st === 'terminated' || st === 'archived') closedCount++;
+      else openCount++;
+    });
+
+    return { total, openCount, inProgressCount, completedCount, pendingAcceptanceCount, closedCount };
+  }, [items]);
+
+  // Filtered and Sorted Items
+  const filteredAndSortedItems = useMemo(() => {
+    let result = [...items];
+
+    // Status Filter
+    if (statusFilter !== 'ALL') {
+      if (statusFilter === 'OPEN') result = result.filter(i => i.status === 'open');
+      else if (statusFilter === 'IN_PROGRESS') result = result.filter(i => ['in_progress', 'active', 'confirmed'].includes(i.status));
+      else if (statusFilter === 'PENDING_ACCEPTANCE') result = result.filter(i => ['pending_acceptance', 'pending'].includes(i.status));
+      else if (statusFilter === 'COMPLETED') result = result.filter(i => i.status === 'completed');
+      else if (statusFilter === 'CLOSED') result = result.filter(i => ['closed', 'cancelled', 'terminated', 'archived'].includes(i.status));
+    }
+
+    // Search Query
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(i => 
+        (i.title && i.title.toLowerCase().includes(q)) ||
+        (i.practice_area && i.practice_area.toLowerCase().includes(q)) ||
+        (i.id && String(i.id).toLowerCase().includes(q)) ||
+        (i.description && i.description.toLowerCase().includes(q)) ||
+        (i.lawyer && (i.lawyer.name || i.lawyer.full_name || '').toLowerCase().includes(q))
+      );
+    }
+
+    // Sort Order
+    result.sort((a, b) => {
+      if (sortOrder === 'UPDATED_DESC') return new Date(b.updated_at) - new Date(a.updated_at);
+      if (sortOrder === 'NEWEST') return new Date(b.created_at) - new Date(a.created_at);
+      if (sortOrder === 'OLDEST') return new Date(a.created_at) - new Date(b.created_at);
+      return 0;
+    });
+
+    return result;
+  }, [items, statusFilter, searchQuery, sortOrder]);
+
+  const handleCancelCase = async (caseItem) => {
+    if (!window.confirm(`Are you sure you want to cancel "${caseItem.title}"?\n\nThis will withdraw your job posting from the public job board and decline any pending proposals.`)) {
+      return;
+    }
+    const toastId = toast.loading('Cancelling case...');
+    try {
+      const { error } = await supabase
+        .from('job_posts')
+        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .eq('id', caseItem.id);
+      if (error) throw error;
+      toast.success('Case cancelled successfully.', { id: toastId });
+      setItems(prev => prev.map(i => i.id === caseItem.id ? { ...i, status: 'cancelled' } : i));
+    } catch (err) {
+      console.error('Error cancelling case:', err);
+      toast.error('Could not cancel case right now.', { id: toastId });
+    }
+  };
 
   const handleContractAction = async (contractId, action) => {
     try {
@@ -146,22 +432,58 @@ const CaseTracking = ({ inline = false }) => {
         .update({ status: newStatus, ...(action === 'accept' ? { fee_locked: true } : {}) })
         .eq('id', contractId);
       if (error) throw error;
-      toast.success(`Contract ${action === 'accept' ? 'Accepted! Retainer payment initialized.' : newStatus}`);
+      toast.success(`Contract ${action === 'accept' ? 'Accepted! Retainer initialized.' : newStatus}`);
       setContracts(prev => prev.map(c => c.id === contractId ? { ...c, status: newStatus } : c));
+      fetchDashboardData(true);
     } catch (err) {
       toast.error('Failed to update contract status');
     }
   };
 
+  // --- Render Loading Skeleton State ---
   if (loading) {
     return (
       <div className={styles.caseTracking}>
-        <div className={styles.header}>
-          <h1>Case Tracking</h1>
-          <p>Monitor the progress of your legal cases</p>
+        <div className={styles.headerContainer}>
+          <div className={styles.headerText}>
+            <h1>Case & Contract Tracking</h1>
+            <p>Monitor the progress of your legal representations, track milestones, and manage contracts</p>
+          </div>
         </div>
+        {/* Statistics Cards Skeleton */}
+        <div className={styles.statsGrid}>
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className={`${styles.statCard} ${styles.skeletonBox}`} style={{ height: '96px', border: 'none' }} />
+          ))}
+        </div>
+        {/* Filter Toolbar Skeleton */}
+        <div className={`${styles.filterToolbar} ${styles.skeletonBox}`} style={{ height: '60px', border: 'none' }} />
+        {/* Case List Skeleton */}
         <div className={styles.casesGrid}>
-          {[1, 2, 3].map((i) => <SkeletonCard key={i} lines={4} />)}
+          {[1, 2, 3].map(i => (
+            <div key={i} className={`${styles.caseCard} ${styles.skeletonBox}`} style={{ height: '220px', border: 'none' }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // --- Render Error State ---
+  if (errorState) {
+    return (
+      <div className={styles.caseTracking}>
+        <div className={styles.headerContainer}>
+          <div className={styles.headerText}>
+            <h1>Case & Contract Tracking</h1>
+            <p>Monitor the progress of your legal representations and review pending contracts</p>
+          </div>
+        </div>
+        <div className={styles.errorStateBanner}>
+          <h3>Unable to load your cases</h3>
+          <p>We encountered a temporary network or data issue while fetching your legal matters from the secure server. Please try refreshing.</p>
+          <button onClick={() => fetchDashboardData(true)} className={styles.btnPrimary} style={{ marginTop: '8px' }}>
+            🔄 Retry Sync
+          </button>
         </div>
       </div>
     );
@@ -169,42 +491,96 @@ const CaseTracking = ({ inline = false }) => {
 
   return (
     <div className={styles.caseTracking}>
-      <div className={styles.header}>
-        <h1>Case & Contract Tracking</h1>
-        <p>Monitor the progress of your legal representations and review pending contracts</p>
+      {/* --- Section 1: Dashboard Header --- */}
+      <div className={styles.headerContainer}>
+        <div className={styles.headerText}>
+          <h1>Case & Contract Tracking</h1>
+          <p>Monitor the progress of your legal representations and review pending contracts</p>
+        </div>
+        <div className={styles.headerActions}>
+          <div className={styles.activeBadge}>
+            <span className={styles.activeBadgeDot} />
+            <span>{stats.inProgressCount + stats.openCount} Active Matters</span>
+          </div>
+          <button 
+            onClick={() => fetchDashboardData(true)} 
+            disabled={refreshing} 
+            className={styles.refreshButton}
+            title="Sync latest case updates from database"
+          >
+            {refreshing ? '🔄 Syncing...' : '🔄 Refresh Data'}
+          </button>
+          <Link to="/client/portal/post-case" className={styles.postNewButton}>
+            + Post Legal Case
+          </Link>
+        </div>
       </div>
 
+      {/* --- Section 2: Live Statistics Cards (Real Data) --- */}
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>Total Cases</span>
+            <span className={styles.statIcon} style={{ background: '#EFF6FF', color: '#2563EB' }}>📁</span>
+          </div>
+          <span className={styles.statValue}>{stats.total}</span>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>Open Cases</span>
+            <span className={styles.statIcon} style={{ background: '#ECFDF5', color: '#10B981' }}>🟢</span>
+          </div>
+          <span className={styles.statValue}>{stats.openCount}</span>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>In Progress</span>
+            <span className={styles.statIcon} style={{ background: '#EFF6FF', color: '#2563EB' }}>⚡</span>
+          </div>
+          <span className={styles.statValue}>{stats.inProgressCount}</span>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>Pending Acceptance</span>
+            <span className={styles.statIcon} style={{ background: '#FFFBEB', color: '#D97706' }}>💬</span>
+          </div>
+          <span className={styles.statValue}>{stats.pendingAcceptanceCount}</span>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>Completed</span>
+            <span className={styles.statIcon} style={{ background: '#F5F3FF', color: '#7C3AED' }}>🏆</span>
+          </div>
+          <span className={styles.statValue}>{stats.completedCount}</span>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statTitle}>Closed</span>
+            <span className={styles.statIcon} style={{ background: '#F3F4F6', color: '#6B7280' }}>🔒</span>
+          </div>
+          <span className={styles.statValue}>{stats.closedCount}</span>
+        </div>
+      </div>
+
+      {/* --- Action Required: Pending Legal Contracts Banner --- */}
       {contracts.filter(c => c.status === 'Pending Review').length > 0 && (
-        <div style={{ marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#0F2A5E', marginBottom: '12px' }}>Action Required: Pending Legal Contracts</h2>
-          <div style={{ display: 'grid', gap: '16px' }}>
-            {contracts.filter(c => c.status === 'Pending Review').map(contract => (
-              <div key={contract.id} style={{ background: '#fff8e1', border: '1px solid #ffe08f', borderRadius: '8px', padding: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+        <div className={styles.actionBanner}>
+          <div className={styles.actionBannerHeader}>
+            <h2>⚡ Action Required: Legal Contracts Pending Review</h2>
+            <span className={styles.pendingReviewBadge}>Signature / Retainer Due</span>
+          </div>
+          <div style={{ display: 'grid', gap: '14px' }}>
+            {contracts.filter(c => c.status === 'Pending Review').map(cnt => (
+              <div key={cnt.id} style={{ background: '#FFFFFF', border: '1px solid #FDE68A', borderRadius: '10px', padding: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
                   <div>
-                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#0F2A5E', margin: 0 }}>{contract.title}</h3>
-                    <p style={{ fontSize: '13px', color: '#4B5563', margin: '4px 0' }}>Lawyer: Adv. {contract.lawyer?.name || 'Assigned Council'}</p>
+                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#0F2A5E', margin: 0 }}>{cnt.title}</h3>
+                    <p style={{ fontSize: '13px', color: '#4B5563', margin: '4px 0' }}>Assigned Advocate: Adv. {cnt.lawyer?.name || cnt.lawyer?.full_name || 'Legal Council'}</p>
                   </div>
-                  <span style={{ background: '#f57f17', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }}>Pending Review</span>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', background: 'white', padding: '12px', borderRadius: '6px', margin: '12px 0', fontSize: '12px' }}>
-                  <div>
-                    <span style={{ color: '#6B7280', display: 'block' }}>Fee Structure</span>
-                    <strong style={{ color: '#111827' }}>{contract.fee_structure || 'Fixed Fee'}</strong>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => handleContractAction(cnt.id, 'negotiate')} className={styles.btnSecondary} style={{ fontSize: '12px' }}>Request Revision</button>
+                    <button onClick={() => handleContractAction(cnt.id, 'accept')} className={styles.btnPrimary} style={{ fontSize: '12px', background: '#0F2A5E' }}>Accept & Pay Retainer</button>
                   </div>
-                  <div>
-                    <span style={{ color: '#6B7280', display: 'block' }}>Total Fee</span>
-                    <strong style={{ color: '#0F2A5E' }}>BDT {Number(contract.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
-                  </div>
-                  <div>
-                    <span style={{ color: '#6B7280', display: 'block' }}>Retainer Due</span>
-                    <strong style={{ color: '#c5221f' }}>BDT {Number(contract.retainer_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                  <button onClick={() => handleContractAction(contract.id, 'negotiate')} style={{ padding: '6px 14px', border: '1px solid #D97706', color: '#D97706', background: 'white', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Request Changes</button>
-                  <button onClick={() => handleContractAction(contract.id, 'decline')} style={{ padding: '6px 14px', border: '1px solid #EF4444', color: '#EF4444', background: 'white', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Decline</button>
-                  <button onClick={() => handleContractAction(contract.id, 'accept')} style={{ padding: '6px 16px', background: '#0F2A5E', color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Accept Contract & Pay Retainer</button>
                 </div>
               </div>
             ))}
@@ -212,84 +588,322 @@ const CaseTracking = ({ inline = false }) => {
         </div>
       )}
 
-      {cases.length === 0 ? (
-        <div className={styles.noCases}>
-          <h3>No cases found</h3>
-          <p>You don't have any active cases at the moment.</p>
+      {/* --- Section 3: Filter & Search Toolbar --- */}
+      <div className={styles.filterToolbar}>
+        <div className={styles.searchBox}>
+          <span className={styles.searchIcon}>🔍</span>
+          <input
+            type="text"
+            placeholder="Search by case title, practice area, or case ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={styles.searchInput}
+          />
+        </div>
+        <div className={styles.filterControls}>
+          <div className={styles.selectGroup}>
+            <span className={styles.selectLabel}>Status:</span>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={styles.filterSelect}>
+              <option value="ALL">All Statuses</option>
+              <option value="OPEN">Open Cases</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="PENDING_ACCEPTANCE">Pending Acceptance</option>
+              <option value="COMPLETED">Completed Cases</option>
+              <option value="CLOSED">Closed / Cancelled</option>
+            </select>
+          </div>
+          <div className={styles.selectGroup}>
+            <span className={styles.selectLabel}>Sort:</span>
+            <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className={styles.filterSelect}>
+              <option value="UPDATED_DESC">Recently Updated</option>
+              <option value="NEWEST">Newest First</option>
+              <option value="OLDEST">Oldest First</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* --- Section 4: Case List or Empty State --- */}
+      {filteredAndSortedItems.length === 0 ? (
+        <div className={styles.emptyStateContainer}>
+          <div className={styles.emptyIconCircle}>📁</div>
+          <h3>{searchQuery || statusFilter !== 'ALL' ? 'No cases match your filters' : "You don't have any active cases yet"}</h3>
+          <p>
+            {searchQuery || statusFilter !== 'ALL' 
+              ? 'Try clearing your search terms or adjusting the status filter to see all your legal representations.' 
+              : 'Post your first legal case today to receive competitive proposals from verified legal experts across Bangladesh.'}
+          </p>
+          {(searchQuery || statusFilter !== 'ALL') ? (
+            <button onClick={() => { setSearchQuery(''); setStatusFilter('ALL'); }} className={styles.btnSecondary}>
+              Clear All Filters
+            </button>
+          ) : (
+            <Link to="/client/portal/post-case" className={styles.postNewButton} style={{ marginTop: '8px' }}>
+              + Post Your First Legal Case
+            </Link>
+          )}
         </div>
       ) : (
         <div className={styles.casesGrid}>
-          {cases.map((c) => {
-            const ms = c.milestones || [];
-            const approvedCount = ms.filter(m => m.status === 'approved').length;
-            const totalCount = ms.length || ((c.case_progress?.length || 0) + 2);
-            const completedCount = ms.length > 0 ? approvedCount : (c.case_progress?.length || 0);
-            const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+          {filteredAndSortedItems.map(item => {
+            const urgencyObj = URGENCY_STYLES[item.urgency?.toLowerCase()] || URGENCY_STYLES.default;
+            const statusColor = STATUS_COLORS[item.status] || '#6B7280';
+            const statusLabel = STATUS_LABELS[item.status] || item.status?.toUpperCase();
 
-            const latestMilestone = ms.length > 0
-              ? ms.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
-              : (c.case_progress && c.case_progress.length > 0
-                ? c.case_progress.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
-                : null);
-            
-            const isHighlighted = caseId && (String(c.id) === String(caseId) || String(c.linked_appointment_id) === String(caseId));
+            // Progress bar calculation
+            const msList = item.milestones || [];
+            const approvedCount = msList.filter(m => m.status === 'approved').length;
+            const totalCount = msList.length > 0 ? msList.length : (item.status === 'completed' ? 4 : item.status === 'in_progress' ? 4 : 2);
+            const completedCount = msList.length > 0 ? approvedCount : (item.status === 'completed' ? 4 : item.status === 'in_progress' ? 2 : item.proposal_count > 0 ? 1 : 0);
+            const progressPercent = Math.round((completedCount / totalCount) * 100);
+
+            const latestMilestone = msList.length > 0
+              ? msList.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
+              : null;
+
             return (
-              <div key={c.id} className={styles.caseCard} style={isHighlighted ? { border: '2px solid #D97706', boxShadow: '0 0 12px rgba(217,119,6,0.3)' } : {}}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 'bold', background: '#F3F4F6', color: '#374151', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase' }}>
-                    {c.case_type || 'Full Representation'}
+              <div key={item.id} className={styles.caseCard}>
+                {/* Top Row: Practice Area, Case ID, Urgency, Status */}
+                <div className={styles.cardTopRow}>
+                  <div className={styles.cardBadgesLeft}>
+                    <span className={styles.practiceAreaBadge}>{item.practice_area}</span>
+                    <span className={styles.caseIdBadge}>#{String(item.id).slice(0, 8).toUpperCase()}</span>
+                    <span 
+                      className={styles.urgencyBadge} 
+                      style={{ backgroundColor: urgencyObj.bg, color: urgencyObj.color, border: `1px solid ${urgencyObj.border}` }}
+                    >
+                      {urgencyObj.label}
+                    </span>
+                  </div>
+                  <span className={styles.statusBadge} style={{ backgroundColor: statusColor, color: '#FFFFFF' }}>
+                    {statusLabel}
                   </span>
-                  <span
-                    className={styles.status}
-                    style={{ backgroundColor: STATUS_COLORS[c.status] || '#6B7280' }}
-                  >
-                    {STATUS_LABELS[c.status] || c.status}
-                  </span>
-                </div>
-                <div className={styles.caseHeader}>
-                  <h3>{c.title}</h3>
-                </div>
-                {c.lawyer && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                    <img src={c.lawyer.profile_picture_url || 'https://via.placeholder.com/32'} alt="" style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} />
-                    <span style={{ fontSize: '13px', color: '#1F2937', fontWeight: '500' }}>Adv. {c.lawyer.name}</span>
-                  </div>
-                )}
-                <p className={styles.description}>{c.description}</p>
-                
-                {c.agreed_fee > 0 && (
-                  <div style={{ background: '#F9FAFB', padding: '8px 12px', borderRadius: '6px', margin: '8px 0', fontSize: '12px', display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#4B5563' }}>Agreed Fee / Balance:</span>
-                    <strong style={{ color: '#0F2A5E' }}>BDT {Number(c.agreed_fee || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
-                  </div>
-                )}
-
-                {/* Milestone Progress Bar */}
-                <div style={{ margin: '12px 0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#4B5563', marginBottom: '4px', fontWeight: 'bold' }}>
-                    <span>Progress ({completedCount}/{totalCount} milestones)</span>
-                    <span>{percent}%</span>
-                  </div>
-                  <div style={{ height: '6px', background: '#E5E7EB', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${percent}%`, height: '100%', background: '#0F2A5E', transition: 'width 0.5s ease' }} />
-                  </div>
                 </div>
 
-                {latestMilestone && (
-                  <p className={styles.milestone}>
-                    Latest: {latestMilestone.title} {latestMilestone.status ? `(${latestMilestone.status})` : ''}
-                  </p>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #E5E7EB' }}>
-                  <span style={{ fontSize: '11px', color: '#6B7280' }}>Updated: {new Date(c.updated_at).toLocaleDateString()}</span>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => navigate(`/client/portal/cases/${c.id}`)} style={{ padding: '6px 12px', border: '1px solid #0F2A5E', color: '#0F2A5E', background: 'white', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>View Details</button>
-                    <button onClick={() => navigate('/client/portal/messages')} style={{ padding: '6px 12px', background: '#0F2A5E', color: 'white', border: 'none', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>Open Messages</button>
+                {/* Case Title & Description */}
+                <div className={styles.cardTitleArea}>
+                  <h3>{item.title}</h3>
+                  <p className={styles.cardDescription}>{item.description}</p>
+                </div>
+
+                {/* Key Metadata Grid */}
+                <div className={styles.metaGrid}>
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>Assigned Advocate</span>
+                    <span className={styles.metaValue}>
+                      {item.lawyer ? (
+                        <>
+                          <img 
+                            src={item.lawyer.profile_picture_url || item.lawyer.avatar_url || 'https://via.placeholder.com/32'} 
+                            alt="" 
+                            className={styles.lawyerAvatarMini} 
+                          />
+                          <span>Adv. {item.lawyer.name || item.lawyer.full_name || 'Legal Council'}</span>
+                        </>
+                      ) : (
+                        <span style={{ color: '#D97706' }}>
+                          {item.proposal_count > 0 ? `💬 ${item.proposal_count} Proposal${item.proposal_count > 1 ? 's' : ''} Received` : 'Awaiting Selection'}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>Budget / Fee</span>
+                    <span className={styles.metaValue}>{item.budget}</span>
+                  </div>
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>Created Date</span>
+                    <span className={styles.metaValue}>
+                      {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  </div>
+                  <div className={styles.metaItem}>
+                    <span className={styles.metaLabel}>Proposals</span>
+                    <span className={styles.metaValue}>{item.proposal_count || 0} Submitted</span>
+                  </div>
+                </div>
+
+                {/* Progress Indicator & Bar */}
+                <div className={styles.progressSection}>
+                  <div className={styles.progressHeader}>
+                    <span>Representation Progress ({completedCount} of {totalCount} stages completed)</span>
+                    <span>{progressPercent}%</span>
+                  </div>
+                  <div className={styles.progressBarContainer}>
+                    <div className={styles.progressBarFill} style={{ width: `${progressPercent}%` }} />
+                  </div>
+                  {latestMilestone ? (
+                    <p className={styles.latestMilestoneText}>
+                      ✓ Latest Milestone: {latestMilestone.title} ({latestMilestone.status})
+                    </p>
+                  ) : (
+                    <p className={styles.latestMilestoneText}>
+                      ⚡ Stage: {item.status === 'open' ? 'Case posted publicly; reviewing advocate bids' : item.status === 'in_progress' ? 'Advocate assigned & case preparation underway' : 'Case stages updating'}
+                    </p>
+                  )}
+                </div>
+
+                {/* Card Action Bar */}
+                <div className={styles.cardFooter}>
+                  <span className={styles.updatedTimestamp}>
+                    Last updated: {new Date(item.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  <div className={styles.actionButtonsGroup}>
+                    <button onClick={() => setSelectedCaseModal(item)} className={styles.btnSecondary}>
+                      Track Progress & Timeline
+                    </button>
+                    {item.proposal_count > 0 && item.raw_type === 'job_post' && (
+                      <button onClick={() => navigate('/client/portal/my-posts')} className={styles.btnSecondary}>
+                        View Proposals ({item.proposal_count})
+                      </button>
+                    )}
+                    {item.lawyer && (
+                      <button onClick={() => navigate('/client/portal/messages')} className={styles.btnPrimary}>
+                        Open Chat
+                      </button>
+                    )}
+                    {item.contract && (
+                      <button onClick={() => setSelectedCaseModal(item)} className={styles.btnSecondary}>
+                        View Contract
+                      </button>
+                    )}
+                    {(item.status === 'open' || item.status === 'pending') && (
+                      <button onClick={() => handleCancelCase(item)} className={styles.btnDanger}>
+                        Cancel Case
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* --- Section 5: Case Details & Interactive Timeline Modal --- */}
+      {selectedCaseModal && (
+        <div className={styles.modalOverlay} onClick={() => setSelectedCaseModal(null)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div>
+                <span className={styles.practiceAreaBadge}>{selectedCaseModal.practice_area}</span>
+                <h2 style={{ marginTop: '6px' }}>{selectedCaseModal.title}</h2>
+              </div>
+              <button onClick={() => setSelectedCaseModal(null)} className={styles.closeModalBtn}>✕</button>
+            </div>
+
+            <div className={styles.modalBody}>
+              {/* Case Summary Overview */}
+              <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#0F2A5E' }}>Case Overview & Specifications</h4>
+                <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#334155', lineHeight: '1.6' }}>{selectedCaseModal.description}</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '13px', borderTop: '1px solid #E2E8F0', paddingTop: '12px' }}>
+                  <span><strong>Case ID:</strong> #{String(selectedCaseModal.id).slice(0, 8).toUpperCase()}</span>
+                  <span><strong>Budget:</strong> {selectedCaseModal.budget}</span>
+                  <span><strong>Urgency:</strong> {selectedCaseModal.urgency?.toUpperCase()}</span>
+                  <span><strong>Status:</strong> {selectedCaseModal.status?.toUpperCase()}</span>
+                </div>
+              </div>
+
+              {/* Vertical Case Timeline (Actual DB Timestamps) */}
+              <div>
+                <h3 style={{ fontSize: '17px', fontWeight: '700', color: '#0F2A5E', margin: '0 0 16px 0' }}>
+                  End-to-End Case Timeline & Milestones
+                </h3>
+                <div className={styles.timelineContainer}>
+                  {/* Stage 1: Case Posted */}
+                  <div className={styles.timelineItem}>
+                    <div className={`${styles.timelineDot} ${styles.dotCompleted}`}>✓</div>
+                    <span className={styles.timelineTitle}>1. Case Posted & Publicized</span>
+                    <span className={styles.timelineDesc}>Legal matter submitted and made accessible to verified Bangladesh lawyers.</span>
+                    <span className={styles.timelineDate}>{new Date(selectedCaseModal.created_at).toLocaleString()}</span>
+                  </div>
+
+                  {/* Stage 2: Lawyer Applications */}
+                  <div className={styles.timelineItem}>
+                    <div className={`${styles.timelineDot} ${selectedCaseModal.proposal_count > 0 ? styles.dotCompleted : styles.dotActive}`}>
+                      {selectedCaseModal.proposal_count > 0 ? '✓' : '2'}
+                    </div>
+                    <span className={styles.timelineTitle}>2. Lawyer Proposals & Competitive Bidding</span>
+                    <span className={styles.timelineDesc}>
+                      {selectedCaseModal.proposal_count > 0 
+                        ? `${selectedCaseModal.proposal_count} advocate proposal(s) received for review.` 
+                        : 'Awaiting proposals from qualified advocates.'}
+                    </span>
+                    {selectedCaseModal.proposal_count > 0 && (
+                      <span className={styles.timelineDate}>Active bidding stage</span>
+                    )}
+                  </div>
+
+                  {/* Stage 3: Proposal Accepted */}
+                  <div className={styles.timelineItem}>
+                    <div className={`${styles.timelineDot} ${selectedCaseModal.lawyer ? styles.dotCompleted : selectedCaseModal.proposal_count > 0 ? styles.dotActive : styles.dotPending}`}>
+                      {selectedCaseModal.lawyer ? '✓' : '3'}
+                    </div>
+                    <span className={styles.timelineTitle}>3. Advocate Selected & Proposal Accepted</span>
+                    <span className={styles.timelineDesc}>
+                      {selectedCaseModal.lawyer 
+                        ? `Assigned to Adv. ${selectedCaseModal.lawyer.name || selectedCaseModal.lawyer.full_name || 'Legal Council'}.` 
+                        : 'Review pending proposals to select your legal representative.'}
+                    </span>
+                    {selectedCaseModal.lawyer && (
+                      <span className={styles.timelineDate}>Advocate assigned</span>
+                    )}
+                  </div>
+
+                  {/* Stage 4: Contract & Retainer */}
+                  <div className={styles.timelineItem}>
+                    <div className={`${styles.timelineDot} ${selectedCaseModal.contract ? (selectedCaseModal.contract.status === 'Active' ? styles.dotCompleted : styles.dotActive) : styles.dotPending}`}>
+                      {selectedCaseModal.contract && selectedCaseModal.contract.status === 'Active' ? '✓' : '4'}
+                    </div>
+                    <span className={styles.timelineTitle}>4. Legal Contract Signed & Retainer Paid</span>
+                    <span className={styles.timelineDesc}>
+                      {selectedCaseModal.contract 
+                        ? `Contract status: ${selectedCaseModal.contract.status}. Retainer fee: BDT ${Number(selectedCaseModal.contract.retainer_amount || selectedCaseModal.contract.amount || 0).toLocaleString('en-IN')}.`
+                        : 'Formal representation agreement and retainer initialization.'}
+                    </span>
+                  </div>
+
+                  {/* Stage 5: Work In Progress & Milestones */}
+                  <div className={styles.timelineItem}>
+                    <div className={`${styles.timelineDot} ${selectedCaseModal.status === 'completed' ? styles.dotCompleted : selectedCaseModal.status === 'in_progress' ? styles.dotActive : styles.dotPending}`}>
+                      {selectedCaseModal.status === 'completed' ? '✓' : '5'}
+                    </div>
+                    <span className={styles.timelineTitle}>5. Legal Representation In Progress</span>
+                    <span className={styles.timelineDesc}>
+                      {selectedCaseModal.milestones && selectedCaseModal.milestones.length > 0
+                        ? `${selectedCaseModal.milestones.filter(m => m.status === 'approved').length} of ${selectedCaseModal.milestones.length} milestones completed.`
+                        : 'Ongoing legal drafting, court practice, and consultation sessions.'}
+                    </span>
+                  </div>
+
+                  {/* Stage 6: Case Completed */}
+                  <div className={styles.timelineItem}>
+                    <div className={`${styles.timelineDot} ${selectedCaseModal.status === 'completed' ? styles.dotCompleted : styles.dotPending}`}>
+                      {selectedCaseModal.status === 'completed' ? '✓' : '6'}
+                    </div>
+                    <span className={styles.timelineTitle}>6. Case Resolved & Completed</span>
+                    <span className={styles.timelineDesc}>Final case closure, document archive, and client review submission.</span>
+                    {selectedCaseModal.status === 'completed' && (
+                      <span className={styles.timelineDate}>Case closed on {new Date(selectedCaseModal.updated_at).toLocaleDateString()}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #E5E7EB', paddingTop: '16px' }}>
+                <button onClick={() => setSelectedCaseModal(null)} className={styles.btnSecondary}>
+                  Close Timeline
+                </button>
+                {selectedCaseModal.lawyer && (
+                  <button onClick={() => { setSelectedCaseModal(null); navigate('/client/portal/messages'); }} className={styles.btnPrimary}>
+                    Open Chat with Advocate
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

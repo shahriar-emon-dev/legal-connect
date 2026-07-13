@@ -99,20 +99,22 @@ export function AuthProvider({ children }) {
               const u = session.user;
               const publicUser = await fetchPublicUser(u.email);
               if (!cancelled) {
-                if (publicUser) {
+                if (publicUser && !publicUser._missing) {
                   setUser({ 
                     ...u, 
                     ...u.user_metadata, 
                     ...publicUser, 
                     full_name: publicUser.name || u.user_metadata?.full_name,
                     profile_picture_url: publicUser.profile_picture_url || u.user_metadata?.avatar_url || u.user_metadata?.profile_picture_url,
-                    id: publicUser.id, 
+                    id: publicUser.id || u.id, 
                     auth_id: u.id 
                   });
-                } else {
-                  console.warn('User record missing in public.users (account deleted/dropped). Signing out:', u.email);
+                } else if (publicUser?._missing) {
+                  console.warn('User record genuinely missing in public.users. Signing out:', u.email);
                   await supabase.auth.signOut();
                   setUser(null);
+                } else {
+                  setUser({ ...u, ...u.user_metadata, id: u.id, auth_id: u.id, full_name: u.user_metadata?.full_name });
                 }
               }
             } else {

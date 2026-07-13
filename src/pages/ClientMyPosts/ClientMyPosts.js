@@ -17,42 +17,55 @@ const ClientMyPosts = () => {
   const [processingId, setProcessingId] = useState(null);
 
   useEffect(() => {
-    if (user) {
+    if (user?.id || user?.auth_id) {
       fetchMyPosts();
+    } else {
+      setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user?.id, user?.auth_id]);
 
   useEffect(() => {
-    if (selectedPost) {
+    if (selectedPost && selectedPost.id) {
       fetchProposals(selectedPost.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPost]);
 
   const fetchMyPosts = async () => {
+    const clientId = user?.id || user?.auth_id;
+    if (!clientId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const { data, error } = await supabase
         .from('job_posts')
         .select('*')
-        .eq('client_id', user.id)
+        .or(`client_id.eq.${clientId},client_id.eq.${user?.auth_id || clientId},client_id.eq.${user?.id || clientId}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
-      if (data && data.length > 0 && !selectedPost) {
-        setSelectedPost(data[0]);
+      const fetchedPosts = data || [];
+      setPosts(fetchedPosts);
+      if (fetchedPosts.length > 0 && (!selectedPost || !fetchedPosts.find(p => p.id === selectedPost?.id))) {
+        setSelectedPost(fetchedPosts[0]);
+      } else if (fetchedPosts.length === 0) {
+        setSelectedPost(null);
       }
     } catch (err) {
       console.error('Error fetching my posts:', err);
-      toast.error(`Failed to load your posted cases: ${err.message || err.details || 'Unknown error'}`);
+      if (!err.message?.includes('undefined')) {
+        toast.error(`Failed to load your posted cases: ${err.message || err.details || 'Unknown error'}`);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const fetchProposals = async (jobPostId) => {
+    if (!jobPostId) return;
     try {
       setLoadingProposals(true);
       const { data, error } = await supabase
@@ -119,14 +132,23 @@ const ClientMyPosts = () => {
 
     try {
       setProcessingId(proposal.id);
-      const { error } = await supabase
-        .from('job_proposals')
-        .update({ status: 'accepted', updated_at: new Date().toISOString() })
-        .eq('id', proposal.id);
+      
+      // Try atomic transactional procedure first (creates Contract, Workspace, Milestones, Chat & Notifications)
+      const { error: rpcError } = await supabase.rpc('fn_accept_job_proposal_transactional', {
+        p_proposal_id: Number(proposal.id),
+        p_client_id: user?.id
+      });
 
-      if (error) throw error;
+      if (rpcError) {
+        // Safe backward compatibility fallback if RPC is not deployed yet
+        const { error: fallbackErr } = await supabase
+          .from('job_proposals')
+          .update({ status: 'accepted', updated_at: new Date().toISOString() })
+          .eq('id', proposal.id);
+        if (fallbackErr) throw fallbackErr;
+      }
 
-      toast.success('Proposal accepted! Consultation initiated.');
+      toast.success('Proposal accepted! Contract & Workspace initialized.');
       // Refresh posts and proposals
       await fetchMyPosts();
       await fetchProposals(selectedPost.id);

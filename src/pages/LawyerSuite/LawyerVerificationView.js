@@ -15,20 +15,24 @@ const LawyerVerificationView = () => {
   const [activeUploadContext, setActiveUploadContext] = useState(null);
 
   const fetchDocs = useCallback(async (isSilent = false) => {
-    if (!user) return;
+    const userId = user?.id || user?.auth_id;
+    if (!userId) {
+      if (!isSilent) setDocLoading(false);
+      return;
+    }
     try {
       if (!isSilent) setDocLoading(true);
       let { data, error } = await supabase
         .from('documents')
         .select('*')
         .eq('document_type', 'verification')
-        .or(`uploaded_by.eq.${user.id},lawyer_id.eq.${user.id}`);
+        .or(`uploaded_by.eq.${userId},lawyer_id.eq.${userId},uploaded_by.eq.${user.auth_id || userId},lawyer_id.eq.${user.auth_id || userId}`);
 
       if (error && (error.message?.includes('document_type') || error.code === '42703')) {
         const fallback = await supabase
           .from('documents')
           .select('*')
-          .or(`uploaded_by.eq.${user.id},lawyer_id.eq.${user.id}`);
+          .or(`uploaded_by.eq.${userId},lawyer_id.eq.${userId}`);
         data = fallback.data;
         error = fallback.error;
       }
@@ -47,8 +51,12 @@ const LawyerVerificationView = () => {
   }, [user]);
 
   useEffect(() => {
-    fetchDocs();
-  }, [fetchDocs]);
+    if (user?.id || user?.auth_id) {
+      fetchDocs();
+    } else {
+      setDocLoading(false);
+    }
+  }, [user?.id, user?.auth_id, fetchDocs]);
 
   const handleDocumentUpload = async (e) => {
     if (!e.target.files || e.target.files.length === 0 || !activeUploadContext) return;
@@ -59,10 +67,12 @@ const LawyerVerificationView = () => {
     const toastId = toast.loading(`Uploading ${docName}...`);
     
     try {
+      const userId = user?.id || user?.auth_id;
+      if (!userId) throw new Error('You must be logged in to upload verification documents.');
       const fileExt = file.name.split('.').pop();
       const cleanDocName = docName.replace(/[^a-zA-Z0-9]/g, '-');
-      const fileName = `${user.id}-${cleanDocName}-${Date.now()}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
+      const fileName = `${userId}-${cleanDocName}-${Date.now()}.${fileExt}`;
+      const filePath = `${userId}/${fileName}`;
 
       // Upload to storage with upsert option enabled
       const { error: uploadError } = await supabase.storage
@@ -81,9 +91,9 @@ const LawyerVerificationView = () => {
       // Optimistic instant UI update so lawyer immediately sees their uploaded file
       const optimisticDoc = {
         id: 'temp-' + Date.now(),
-        client_id: user.auth_id || user.id,
-        lawyer_id: user.auth_id || user.id,
-        uploaded_by: user.auth_id || user.id,
+        client_id: user.auth_id || userId,
+        lawyer_id: user.auth_id || userId,
+        uploaded_by: user.auth_id || userId,
         file_name: file.name,
         storage_url: publicUrl,
         file_size: file.size,
@@ -99,9 +109,9 @@ const LawyerVerificationView = () => {
       const existingDoc = documents.find(d => d.description === docName);
 
       const docPayload = {
-        client_id: user.auth_id || user.id,
-        lawyer_id: user.auth_id || user.id,
-        uploaded_by: user.auth_id || user.id,
+        client_id: user.auth_id || userId,
+        lawyer_id: user.auth_id || userId,
+        uploaded_by: user.auth_id || userId,
         file_name: file.name,
         storage_url: publicUrl,
         file_size: file.size,
@@ -129,11 +139,11 @@ const LawyerVerificationView = () => {
 
       // Sync legacy URL columns on lawyers table if applicable
       if (docName === 'Bar Council Certificate') {
-        await supabase.from('lawyers').update({ bar_document_url: publicUrl }).eq('user_id', user.id);
-        await supabase.from('lawyers').update({ bar_document_url: publicUrl }).eq('id', user.id);
+        if (user?.id) await supabase.from('lawyers').update({ bar_document_url: publicUrl }).eq('user_id', user.id);
+        if (user?.auth_id) await supabase.from('lawyers').update({ bar_document_url: publicUrl }).eq('user_id', user.auth_id);
       } else if (docName === 'National ID') {
-        await supabase.from('lawyers').update({ nid_document_url: publicUrl }).eq('user_id', user.id);
-        await supabase.from('lawyers').update({ nid_document_url: publicUrl }).eq('id', user.id);
+        if (user?.id) await supabase.from('lawyers').update({ nid_document_url: publicUrl }).eq('user_id', user.id);
+        if (user?.auth_id) await supabase.from('lawyers').update({ nid_document_url: publicUrl }).eq('user_id', user.auth_id);
       }
 
       toast.success(`${docName} uploaded successfully!`, { id: toastId });

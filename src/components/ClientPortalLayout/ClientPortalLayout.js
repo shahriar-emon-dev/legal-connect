@@ -10,7 +10,7 @@ const ClientPortalLayout = () => {
   const clientPic = user?.user_metadata?.avatar_url || user?.profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(clientName)}&background=041635&color=fff`;
 
   return (
-    <div className="bg-[#F8F9FF] font-sans text-[#041635] overflow-hidden h-screen flex">
+    <div className="bg-[#F8F9FF] font-sans text-[#041635] min-h-screen flex w-full max-w-full overflow-x-hidden">
       <style>{`
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
@@ -25,7 +25,7 @@ const ClientPortalLayout = () => {
       `}</style>
 
       {/* Column 1: SideNavBar (Rail/Sidebar) */}
-      <aside className="flex flex-col py-6 bg-[#041635] text-white h-full w-20 md:w-64 fixed left-0 top-0 border-r border-[#1e2f50] shadow-xl z-50 transition-all duration-300 flex-shrink-0">
+      <aside className="flex flex-col py-6 bg-[#041635] text-white h-screen w-20 md:w-64 fixed left-0 top-0 border-r border-[#1e2f50] shadow-xl z-50 transition-all duration-300 flex-shrink-0 overflow-y-auto portal-scrollbar">
         <div className="px-6 mb-8 flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
           <span className="material-symbols-outlined text-[#fed977] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>balance</span>
           <div className="hidden md:block">
@@ -117,7 +117,7 @@ const ClientPortalLayout = () => {
       </aside>
 
       {/* Main Content Area with Outlet for nested routing */}
-      <main className="flex-1 ml-20 md:ml-64 h-screen overflow-hidden bg-[#F8F9FF] flex flex-col">
+      <main className="flex-1 ml-20 md:ml-64 min-h-screen w-[calc(100%-5rem)] md:w-[calc(100%-16rem)] max-w-full overflow-x-hidden bg-[#F8F9FF] flex flex-col">
         <Outlet />
       </main>
     </div>

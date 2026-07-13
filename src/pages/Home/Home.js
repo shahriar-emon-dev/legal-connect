@@ -6,10 +6,9 @@ import { supabase } from "../../services/supabase";
 const Home = () => {
   const [departments, setDepartments] = useState([]);
   const [recentUpdates, setRecentUpdates] = useState([]);
-  
-  // Use new hook to fetch lawyers dynamically
-  // const { lawyers: featuredLawyers, loading: loadingLawyers } = useLawyers({ limit: 8, sort: 'rating' });
-  const loadingLawyers = false;
+  const [featuredLawyers, setFeaturedLawyers] = useState([]);
+  const [loadingLawyers, setLoadingLawyers] = useState(true);
+  const [heroLawyer, setHeroLawyer] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -53,18 +52,62 @@ const Home = () => {
         
       if (updatesData) setRecentUpdates(updatesData);
 
+      // Fetch Real Verified Lawyers dynamically
+      setLoadingLawyers(true);
+      let lawyersList = null;
+      try {
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('search_lawyers', {
+          p_verified_only: true,
+          p_limit: 8,
+          p_offset: 0
+        });
+        if (!rpcErr && rpcData && rpcData.length > 0) {
+          lawyersList = rpcData.map(item => ({
+            id: item.id,
+            full_name: item.name || 'Verified Advocate',
+            specialty: item.specialization || 'General Practice',
+            hourly_rate: item.hourly_rate || 2000,
+            rating: item.avg_rating || 5.0,
+            reviews_count: item.total_reviews || 0,
+            experience_years: item.experience_years || 5,
+            profile_image_url: item.profile_picture_url || "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&auto=format&fit=crop"
+          }));
+        }
+      } catch (e) {}
+
+      if (!lawyersList) {
+        try {
+          const { data: rawLawyers } = await supabase
+            .from('lawyers')
+            .select('*, user:users(name, profile_picture_url)')
+            .eq('is_verified', true)
+            .limit(8);
+          if (rawLawyers && rawLawyers.length > 0) {
+            lawyersList = rawLawyers.map(l => ({
+              id: l.id,
+              full_name: l.user?.name || l.full_name || 'Verified Advocate',
+              specialty: l.specialization || 'General Practice',
+              hourly_rate: l.hourly_rate || 2000,
+              rating: l.avg_rating || 5.0,
+              reviews_count: l.total_reviews || 0,
+              experience_years: l.experience_years || 5,
+              profile_image_url: l.user?.profile_picture_url || l.profile_image_url || l.profile_picture_url || "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&auto=format&fit=crop"
+            }));
+          }
+        } catch (e) {}
+      }
+
+      const finalLawyers = lawyersList || [];
+      setFeaturedLawyers(finalLawyers);
+      if (finalLawyers.length > 0) {
+        setHeroLawyer(finalLawyers[0]);
+      }
     } catch (err) {
       console.error('Failed to load home data', err);
+    } finally {
+      setLoadingLawyers(false);
     }
   };
-
-  // Fallbacks in case DB is empty or still loading
-  const displayLawyers = [
-    { id: 1, full_name: "Adv. Rubaiya Khan", specialty: "Family Law", hourly_rate: 1500, rating: 4.9, profile_image_url: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop" },
-    { id: 2, full_name: "Adv. Salman Farsi", specialty: "Corporate Law", hourly_rate: 3000, rating: 5.0, profile_image_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=200&auto=format&fit=crop" },
-    { id: 3, full_name: "Adv. Nusrat Jahan", specialty: "Real Estate", hourly_rate: 2000, rating: 4.8, profile_image_url: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&auto=format&fit=crop" },
-    { id: 4, full_name: "Adv. Tanveer Ahmed", specialty: "Criminal Law", hourly_rate: 2500, rating: 4.9, profile_image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop" }
-  ];
 
   const displayDepts = departments.length > 0 ? departments : [
     { id: 1, name: "Family Law", icon: "family_restroom", color: "bg-blue-100 text-blue-800", count: 142 },
@@ -103,38 +146,37 @@ const Home = () => {
           </div>
 
           <div className="relative hidden md:block">
-            {/* Profile Card Mockup */}
-            <div className="bg-white p-8 rounded-lg shadow-2xl max-w-sm ml-auto transform rotate-3 hover:rotate-0 transition-transform duration-500 relative z-10">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-full bg-surface-container-high overflow-hidden">
-                  <img alt="Featured Lawyer" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsvfUukvNpjuynkTGfQxBQ8albQqmGJNLYqSNqKCEm8DXmOkKSL24L08dMZ5Jyneau9WhmyKtGiOFYY1Rg6V-ThjPxmyytQTxKwWBRX4CWEK1VubANbK_YJxQusr8jFB7f4G_wQaZaNmeoMRjb2eILhEDkov11CSD1X2qbnDeDBqu_juDWkHZLnDDsXkxI94uZxPLATG0h5DmCJLgp9k5HFYZ13A7mCpdH7EYLz6qhy9Ym-FEtqJEDQc0m6Ah4S4zJ5flsTfda1Kv3"/>
+            {/* Dynamic Profile Card Mockup */}
+            {heroLawyer && (
+              <div className="bg-white p-8 rounded-lg shadow-2xl max-w-sm ml-auto transform rotate-3 hover:rotate-0 transition-transform duration-500 relative z-10">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-full bg-surface-container-high overflow-hidden">
+                    <img alt={heroLawyer.full_name} className="w-full h-full object-cover" src={heroLawyer.profile_image_url}/>
+                  </div>
+                  <div>
+                    <h3 className="font-headline-sm text-primary">{heroLawyer.full_name}</h3>
+                    <p className="text-body-sm text-on-surface-variant">Verified Legal Expert</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-headline-sm text-primary">Adv. Ariful Islam</h3>
-                  <p className="text-body-sm text-on-surface-variant">Supreme Court of Bangladesh</p>
+                <div className="space-y-3 mb-6">
+                  <div className="flex justify-between border-b border-surface-container-high pb-2">
+                    <span className="text-on-surface-variant">Experience</span>
+                    <span className="font-bold">{heroLawyer.experience_years || 5}+ Years</span>
+                  </div>
+                  <div className="flex justify-between border-b border-surface-container-high pb-2">
+                    <span className="text-on-surface-variant">Specialization</span>
+                    <span className="font-bold text-secondary line-clamp-1">{heroLawyer.specialty}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-surface-container-high pb-2">
+                    <span className="text-on-surface-variant">Consultation</span>
+                    <span className="font-bold">BDT {heroLawyer.hourly_rate}/hr</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Link to={`/lawyers/${heroLawyer.id}`} className="flex-1 bg-primary text-white py-2 text-center rounded text-sm font-bold">View Profile</Link>
                 </div>
               </div>
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between border-b border-surface-container-high pb-2">
-                  <span className="text-on-surface-variant">Experience</span>
-                  <span className="font-bold">12+ Years</span>
-                </div>
-                <div className="flex justify-between border-b border-surface-container-high pb-2">
-                  <span className="text-on-surface-variant">Success Rate</span>
-                  <span className="font-bold text-secondary">94%</span>
-                </div>
-                <div className="flex justify-between border-b border-surface-container-high pb-2">
-                  <span className="text-on-surface-variant">Consultation</span>
-                  <span className="font-bold">BDT 2,500/hr</span>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Link to="/lawyers" className="flex-1 bg-primary text-white py-2 text-center rounded text-sm font-bold">View Profile</Link>
-                <div className="w-10 h-10 flex items-center justify-center border border-primary text-primary rounded cursor-pointer">
-                  <span className="material-symbols-outlined">mail</span>
-                </div>
-              </div>
-            </div>
+            )}
             {/* Decorative Elements */}
             <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-secondary-fixed/20 rounded-full blur-2xl"></div>
             <div className="absolute -top-10 right-10 w-32 h-32 bg-primary-container/30 rounded-full blur-3xl"></div>
@@ -189,9 +231,20 @@ const Home = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {loadingLawyers ? (
-             <p className="col-span-4 text-center">Loading experts...</p>
+             <p className="col-span-4 text-center text-on-surface-variant py-8">Loading verified legal experts...</p>
+          ) : featuredLawyers.length === 0 ? (
+            <div className="col-span-4 text-center py-12 bg-surface-container-low rounded-lg border border-outline-variant">
+              <span className="material-symbols-outlined text-4xl text-outline mb-2">person_off</span>
+              <h3 className="font-bold text-lg text-primary mb-1">No Verified Lawyers Found</h3>
+              <p className="text-body-sm text-on-surface-variant max-w-md mx-auto mb-4">
+                We are currently verifying and onboarding legal professionals. Check back soon or browse our full directory.
+              </p>
+              <Link to="/lawyers" className="inline-block px-6 py-2 bg-primary text-white rounded font-bold hover:bg-primary-container hover:text-primary transition-colors">
+                Browse Directory
+              </Link>
+            </div>
           ) : (
-            displayLawyers.map(l => (
+            featuredLawyers.map(l => (
               <div key={l.id} className="bg-white rounded-lg shadow-sm border border-outline-variant border-t-4 border-t-secondary-fixed p-6 hover:shadow-md transition-shadow group">
                 <div className="relative w-24 h-24 mx-auto mb-4">
                   <img src={l.profile_image_url || "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&auto=format&fit=crop"} className="w-full h-full object-cover rounded-full border-2 border-surface-container-high" alt={l.full_name} />
@@ -199,11 +252,11 @@ const Home = () => {
                 </div>
                 <div className="text-center mb-6">
                   <h4 className="font-headline-sm text-primary line-clamp-1">{l.full_name}</h4>
-                  <p className="text-on-surface-variant text-body-sm">{l.specialty || l.department || 'General Practice'}</p>
+                  <p className="text-on-surface-variant text-body-sm">{l.specialty || 'General Practice'}</p>
                   <div className="flex items-center justify-center gap-1 mt-2">
                     <span className="material-symbols-outlined text-secondary-fixed text-lg verified-badge">star</span>
                     <span className="font-bold text-on-surface">{l.rating || '5.0'}</span>
-                    <span className="text-outline text-sm">(120+ reviews)</span>
+                    {l.reviews_count > 0 && <span className="text-outline text-sm">({l.reviews_count} reviews)</span>}
                   </div>
                 </div>
                 <div className="flex justify-between items-center mb-6 bg-surface-container-low p-2 rounded">

@@ -54,22 +54,44 @@ const LawyerSearch = () => {
     try {
       let data = null, error = null;
       
-      // Try with relational join first
+      // 1. Try server-side full-text search procedure first (Phase 12 RPC)
       try {
-        let query = supabase
-          .from('lawyers')
-          .select('*, user:users(name, profile_picture_url)', { count: 'exact' })
-          .eq('is_verified', true)
-          .lte('hourly_rate', maxRate);
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('search_lawyers', {
+          p_query: searchQuery || null,
+          p_category: selectedDepts.length > 0 ? selectedDepts[0] : null,
+          p_location: locationQuery || null,
+          p_max_rate: maxRate,
+          p_verified_only: true,
+          p_limit: 100,
+          p_offset: 0
+        });
 
-        if (locationQuery) {
-          query = query.ilike('location', `%${locationQuery}%`);
+        if (!rpcErr && rpcData && rpcData.length > 0) {
+          data = rpcData.map(item => ({
+            ...item,
+            user: { name: item.name, profile_picture_url: item.profile_picture_url }
+          }));
         }
-
-        const result = await query;
-        data = result.data;
-        error = result.error;
       } catch (e) {}
+
+      // 2. Try with relational join if RPC returned no rows or errored
+      if (!data) {
+        try {
+          let query = supabase
+            .from('lawyers')
+            .select('*, user:users(name, profile_picture_url)', { count: 'exact' })
+            .eq('is_verified', true)
+            .lte('hourly_rate', maxRate);
+
+          if (locationQuery) {
+            query = query.ilike('location', `%${locationQuery}%`);
+          }
+
+          const result = await query;
+          data = result.data;
+          error = result.error;
+        } catch (e) {}
+      }
 
       // If join failed, fallback to independent queries
       if (error || !data) {

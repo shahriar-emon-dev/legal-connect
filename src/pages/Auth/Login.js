@@ -17,19 +17,13 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    if (!authLoading) {
-      if (user) {
-        // User is already logged in — redirect to appropriate dashboard
-        const role = user.user_type || user.role || 'client';
-        let target = '/client/dashboard';
-        if (role === 'lawyer') target = '/lawyer-suite/dashboard';
-        else if (role === 'admin') target = '/admin';
-        navigate(redirect || target, { replace: true });
-      } else {
-        // No active session — safe to clear legacy tokens
-        localStorage.removeItem('token');
-        localStorage.removeItem('userType');
-      }
+    if (!authLoading && user) {
+      // User is already logged in — redirect to appropriate dashboard
+      const role = user.user_type || user.role || 'client';
+      let target = '/client/dashboard';
+      if (role === 'lawyer') target = '/lawyer-suite/dashboard';
+      else if (role === 'admin') target = '/admin';
+      navigate(redirect || target, { replace: true });
     }
   }, [user, authLoading, navigate, redirect]);
 

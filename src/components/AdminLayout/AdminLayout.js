@@ -15,9 +15,9 @@ const AdminLayout = () => {
   const navItems = [
     { name: 'Overview', path: '/admin', icon: '📊', exact: true },
     { name: 'Users', path: '/admin/users', icon: '👥' },
-    { name: 'Lawyers', path: '/admin/lawyers', icon: '⚖️' },
+    { name: 'Lawyers', path: '/admin/lawyers', icon: '🧑‍⚖️' },
     { name: 'Jobs', path: '/admin/jobs', icon: '💼' },
-    { name: 'Lawyer Verifications', path: '/admin/verifications', icon: '⚖️' },
+    { name: 'Lawyer Verifications', path: '/admin/verifications', icon: '🛡️' },
     { name: 'Client Verifications', path: '/admin/client-verifications', icon: '👤' },
     { name: 'Categories', path: '/admin/categories', icon: '🗂️' },
     { name: 'Reviews', path: '/admin/reviews', icon: '⭐' },

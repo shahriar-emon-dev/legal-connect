@@ -1,127 +1,812 @@
+/* ==========================================================================
+   Case & Contract Tracking Dashboard — Production-Ready SaaS Styles
+   ========================================================================== */
+
 .caseTracking {
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1360px;
   margin: 0 auto;
-  padding: 2rem;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.header h1 {
+  padding: 24px 28px 48px;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #1A1F2E;
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
 }
 
-.header p {
-  color: #6B7280;
-  font-size: 1.1rem;
-}
-
-.casesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
-.caseCard {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-  border: 1px solid rgba(15, 42, 94, 0.12);
-}
-
-.caseCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-}
-
-.caseHeader {
+/* --- Top Header Bar --- */
+.headerContainer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  gap: 20px;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #E5E7EB;
 }
 
-.caseHeader h3 {
-  color: #1A1F2E;
-  font-size: 1.3rem;
-  margin: 0;
-  flex: 1;
-  margin-right: 1rem;
+.headerText h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0F2A5E;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
 }
 
-.status {
-  padding: 0.3rem 0.8rem;
-  border-radius: 20px;
-  color: white;
-  font-size: 0.85rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-}
-
-.description {
+.headerText p {
+  font-size: 15px;
   color: #6B7280;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
+  margin: 0;
+  line-height: 1.5;
 }
 
-.milestone {
-  font-size: 0.85rem;
-  color: #0E7490;
-  margin: 0.25rem 0 0;
-  font-style: italic;
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
 }
 
-.caseFooter {
+.activeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1D4ED8;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.activeBadgeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.refreshButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #FFFFFF;
+  border: 1px solid #D1D5DB;
+  color: #374151;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background-color: #F9FAFB;
+  border-color: #9CA3AF;
+  color: #111827;
+}
+
+.refreshButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.postNewButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0F2A5E 0%, #1E4080 100%);
+  border: none;
+  color: #FFFFFF;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(15, 42, 94, 0.2);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.postNewButton:hover {
+  background: linear-gradient(135deg, #081A3D 0%, #0F2A5E 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(15, 42, 94, 0.25);
+}
+
+/* --- Statistics Cards Grid --- */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 1200px) {
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.statCard {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.statCard:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06);
+}
+
+.statHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(15, 42, 94, 0.12);
+  margin-bottom: 12px;
 }
 
-.caseFooter span {
+.statTitle {
+  font-size: 12px;
+  font-weight: 600;
   color: #6B7280;
-  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
-.viewDetailsBtn {
-  background: #0F2A5E;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: background-color 0.2s;
+.statIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
 }
 
-.viewDetailsBtn:hover {
-  background: #081A3D;
+.statValue {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0F2A5E;
+  line-height: 1.1;
 }
 
-.noCases {
-  text-align: center;
-  padding: 3rem;
-  background: white;
+/* --- Filter & Search Toolbar --- */
+.filterToolbar {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
-.noCases h3 {
-  color: #1A1F2E;
-  margin-bottom: 0.5rem;
+.searchBox {
+  flex: 1;
+  min-width: 260px;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.noCases p {
+.searchIcon {
+  position: absolute;
+  left: 14px;
+  color: #9CA3AF;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  background-color: #F9FAFB;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #0F2A5E;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(15, 42, 94, 0.1);
+}
+
+.filterControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.selectGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selectLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4B5563;
+  white-space: nowrap;
+}
+
+.filterSelect {
+  padding: 9px 14px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #111827;
+  background-color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: #0F2A5E;
+  box-shadow: 0 0 0 3px rgba(15, 42, 94, 0.1);
+}
+
+/* --- Action Required Contracts Banner --- */
+.actionBanner {
+  background: linear-gradient(to right, #FFFBEB, #FEF3C7);
+  border: 1px solid #FCD34D;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 28px;
+  box-shadow: 0 2px 4px rgba(217, 119, 6, 0.08);
+}
+
+.actionBannerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.actionBannerHeader h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #92400E;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pendingReviewBadge {
+  background-color: #D97706;
+  color: #FFFFFF;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* --- Case Cards Grid --- */
+.casesGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 20px;
+}
+
+.caseCard {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.caseCard:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 10px 18px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  transform: translateY(-2px);
+}
+
+.cardTopRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.cardBadgesLeft {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.practiceAreaBadge {
+  font-size: 11px;
+  font-weight: 700;
+  background-color: #F3F4F6;
+  color: #374151;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.caseIdBadge {
+  font-size: 12px;
+  font-weight: 600;
   color: #6B7280;
+  font-family: monospace;
+}
+
+.urgencyBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.statusBadge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.cardTitleArea h3 {
+  font-size: 19px;
+  font-weight: 700;
+  color: #0F2A5E;
+  margin: 0 0 6px 0;
+  line-height: 1.35;
+}
+
+.cardDescription {
+  font-size: 14px;
+  color: #4B5563;
+  margin: 0;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* --- Metadata Grid inside Case Card --- */
+.metaGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  background-color: #F9FAFB;
+  border: 1px solid #F3F4F6;
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+
+@media (max-width: 900px) {
+  .metaGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .metaGrid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metaLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.metaValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lawyerAvatarMini {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #CBD5E1;
+}
+
+/* --- Progress Section --- */
+.progressSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4B5563;
+}
+
+.progressBarContainer {
+  width: 100%;
+  height: 8px;
+  background-color: #E5E7EB;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #0F2A5E 0%, #2563EB 100%);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.latestMilestoneText {
+  font-size: 12px;
+  color: #0E7490;
+  font-weight: 500;
+  margin: 2px 0 0 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* --- Card Action Footer --- */
+.cardFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding-top: 16px;
+  border-top: 1px solid #F3F4F6;
+}
+
+.updatedTimestamp {
+  font-size: 12px;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.actionButtonsGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnPrimary {
+  background-color: #0F2A5E;
+  color: #FFFFFF;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnPrimary:hover {
+  background-color: #081A3D;
+}
+
+.btnSecondary {
+  background-color: #FFFFFF;
+  color: #0F2A5E;
+  border: 1px solid #CBD5E1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnSecondary:hover {
+  background-color: #F8FAFC;
+  border-color: #0F2A5E;
+}
+
+.btnDanger {
+  background-color: #FFFFFF;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnDanger:hover {
+  background-color: #FEF2F2;
+  border-color: #DC2626;
+}
+
+/* --- Case Details & Timeline Modal --- */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modalContent {
+  background: #FFFFFF;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 780px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #E5E7EB;
+  position: sticky;
+  top: 0;
+  background: #FFFFFF;
+  z-index: 10;
+}
+
+.modalHeader h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0F2A5E;
+  margin: 0;
+}
+
+.closeModalBtn {
+  background: #F3F4F6;
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 18px;
+  color: #4B5563;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.closeModalBtn:hover {
+  background: #E5E7EB;
+  color: #111827;
+}
+
+.modalBody {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Timeline Components */
+.timelineContainer {
+  position: relative;
+  padding-left: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.timelineContainer::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 11px;
+  width: 2px;
+  background-color: #E5E7EB;
+}
+
+.timelineItem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timelineDot {
+  position: absolute;
+  left: -28px;
+  top: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  z-index: 2;
+}
+
+.dotCompleted {
+  background-color: #10B981;
+  color: #FFFFFF;
+  box-shadow: 0 0 0 4px #ECFDF5;
+}
+
+.dotActive {
+  background-color: #2563EB;
+  color: #FFFFFF;
+  box-shadow: 0 0 0 4px #EFF6FF;
+}
+
+.dotPending {
+  background-color: #F3F4F6;
+  color: #9CA3AF;
+  border: 2px solid #D1D5DB;
+  box-sizing: border-box;
+}
+
+.timelineTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.timelineDesc {
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.5;
+}
+
+.timelineDate {
+  font-size: 12px;
+  color: #6B7280;
+  font-style: italic;
+}
+
+/* --- Empty States & Error States --- */
+.emptyStateContainer {
+  background: #FFFFFF;
+  border: 1px dashed #CBD5E1;
+  border-radius: 16px;
+  padding: 56px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.emptyIconCircle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: #EFF6FF;
+  color: #2563EB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.emptyStateContainer h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.emptyStateContainer p {
+  font-size: 14px;
+  color: #6B7280;
+  max-width: 480px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.errorStateBanner {
+  background-color: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 12px;
+  padding: 28px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.errorStateBanner h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #991B1B;
+  margin: 0;
+}
+
+.errorStateBanner p {
+  font-size: 14px;
+  color: #B91C1C;
+  max-width: 500px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* --- Skeleton Shimmer Animation --- */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeletonBox {
+  background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
 }

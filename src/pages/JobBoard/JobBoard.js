@@ -90,33 +90,55 @@ const JobBoard = () => {
   const fetchJobs = async () => {
     try {
       setLoading(true);
-      let query = supabase
-        .from('job_posts')
-        .select('*')
-        .eq('status', 'open');
+      let jobsData = null;
 
-      if (selectedCategory && selectedCategory !== 'All Categories') {
-        query = query.eq('legal_category', selectedCategory);
+      // 1. Try server-side full-text search procedure first (Phase 12 RPC)
+      try {
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('search_jobs', {
+          p_query: searchTerm || null,
+          p_category: selectedCategory === 'All Categories' ? null : selectedCategory,
+          p_status: 'open',
+          p_limit: 100,
+          p_offset: 0
+        });
+
+        if (!rpcErr && rpcData && rpcData.length > 0) {
+          jobsData = rpcData.map(item => ({
+            ...item,
+            client: { name: item.client_name || 'Client', full_name: item.client_name || 'Client' }
+          }));
+        }
+      } catch (e) {}
+
+      // 2. Fallback to direct relational query if RPC returned no rows or errored
+      if (!jobsData) {
+        let query = supabase
+          .from('job_posts')
+          .select('*')
+          .eq('status', 'open');
+
+        if (selectedCategory && selectedCategory !== 'All Categories') {
+          query = query.eq('legal_category', selectedCategory);
+        }
+
+        if (urgentOnly) {
+          query = query.in('urgency', ['urgent', 'emergency']);
+        }
+
+        if (sortBy === 'newest') {
+          query = query.order('created_at', { ascending: false });
+        } else if (sortBy === 'proposals_high') {
+          query = query.order('proposals_count', { ascending: false });
+        } else if (sortBy === 'proposals_low') {
+          query = query.order('proposals_count', { ascending: true });
+        } else if (sortBy === 'budget_high') {
+          query = query.order('budget_max', { ascending: false, nullsFirst: false });
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        jobsData = data || [];
       }
-
-      if (urgentOnly) {
-        query = query.in('urgency', ['urgent', 'emergency']);
-      }
-
-      if (sortBy === 'newest') {
-        query = query.order('created_at', { ascending: false });
-      } else if (sortBy === 'proposals_high') {
-        query = query.order('proposals_count', { ascending: false });
-      } else if (sortBy === 'proposals_low') {
-        query = query.order('proposals_count', { ascending: true });
-      } else if (sortBy === 'budget_high') {
-        query = query.order('budget_max', { ascending: false, nullsFirst: false });
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      const jobsData = data || [];
 
       // Safely enrich with client user info without breaking if join/RLS fails
       const clientIds = [...new Set(jobsData.map(j => j.client_id).filter(Boolean))];

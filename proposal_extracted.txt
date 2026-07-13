@@ -1,0 +1,726 @@
+﻿
+
+
+
+SHANTO-MARIAM UNIVERSITY OF CREATIVE TECHNOLOGY
+
+Department of CSE &amp; CSIT
+
+Course: Mobile Application and Development  |  CSE 4114
+
+
+
+
+⚖  LegalConnect
+
+Upgraded Project Proposal
+
+&quot;The Freelance Legal Marketplace — Connecting Justice with Expertise&quot;
+
+
+Prepared By
+Mahpara Alam Tahia (ID: 223071012)
+
+Ramim Rashid (ID: 223071043)
+Semester / Batch
+9th Semester, 31st Batch
+Supervised By
+Shad Al Kaisar, Lecturer, CSE &amp; CSIT
+Version
+v2.0 — Full Upgrade Edition
+Date
+April 8, 2026
+
+
+
+
+1. Executive Summary
+
+LegalConnect is a next-generation, web-based Freelance Legal Marketplace — purpose-built as the &quot;Upwork for Legal Professionals&quot; — that transforms how citizens and businesses in Bangladesh access legal expertise. Originally conceived as a Flutter-based mobile consultation app, this upgraded version evolves into a full-scale platform built with Next.js, Supabase, and TypeScript.
+
+
+
+The platform creates a transparent, competitive, and structured digital bridge between legal professionals (lawyers, advocates, legal consultants) and clients (individuals, SMEs, corporations). Lawyers list their expertise across specialized departments; clients post legal gigs or cases with budget ranges; lawyers bid with proposals; and a structured Workspace manages the full case lifecycle — from contract creation to milestone tracking to secure document exchange.
+
+
+
+Platform Tagline
+
+&quot;Post your case. Choose your counsel. Track your justice.&quot; — LegalConnect democratizes access to legal services by bringing the freelance economy model to law.
+
+
+
+
+
+2. Problem Statement
+
+The legal services sector in Bangladesh remains largely undigitized, opaque, and inaccessible to a large segment of the population. The key pain points that LegalConnect is designed to solve are:
+
+
+#
+Problem
+Impact
+1
+Opaque Legal Fees
+Clients have no baseline for what a service should cost. Lawyers quote arbitrarily, creating distrust.
+2
+Inability to Find Niche Experts
+Finding a specialist in IP law, arbitration, or cyber law requires personal networks — impossible for most people.
+3
+No Competitive Bidding System
+Clients cannot compare proposals from multiple lawyers. They accept the first contact they make.
+4
+Inefficiency of Offline Paperwork
+Legal documents are shared via WhatsApp or physical hand-offs, creating massive security and compliance risks.
+5
+Zero Case Transparency
+Once engaged, clients have no structured way to track case progress, court dates, or milestones.
+6
+No Trust Infrastructure
+No public rating, review, or credentials verification system exists for independent lawyers.
+7
+Geographic Barriers
+Excellent lawyers in one district are invisible to clients in another.
+
+
+
+
+
+3. Departmental Categorization
+
+Every lawyer on LegalConnect is registered under one primary department and up to two secondary departments. This enables filtered job feeds, targeted SEO pages, and department-level dashboards.
+
+
+
+
+3.1  Corporate &amp; Business Law
+
+
+Company formation and registration (MOA, AOA)
+
+
+Mergers, acquisitions, and due diligence
+
+
+Shareholder agreements and corporate governance
+
+
+Commercial contract drafting and dispute resolution
+
+
+Foreign Direct Investment (FDI) compliance
+
+
+
+
+3.2  Intellectual Property &amp; Technology Law
+
+
+Trademark and patent registration (BIPA filings)
+
+
+Copyright infringement litigation
+
+
+Software licensing agreements and SaaS legal frameworks
+
+
+Domain and brand name disputes
+
+
+Digital content licensing and creator economy law
+
+
+
+
+3.3  Criminal Defense Law
+
+
+Bail applications and pre-trial hearings
+
+
+Defense in cybercrime and fraud cases
+
+
+Drug offense representation
+
+
+Domestic violence and assault cases
+
+
+Parole and appeals handling
+
+
+
+
+3.4  Family, Marriage &amp; Civil Law
+
+
+Divorce proceedings under Muslim Family Law Ordinance 1961
+
+
+Child custody, guardianship, and adoption
+
+
+Dowry and domestic violence protection
+
+
+Property succession and inheritance law
+
+
+Civil disputes and injunctions
+
+
+
+
+3.5  Property, Real Estate &amp; Land Law
+
+
+Land mutation, title verification, and boundary disputes
+
+
+Lease agreements and tenant-landlord disputes
+
+
+Mortgage and deed preparation
+
+
+RAJUK/CDA approval documentation
+
+
+Agricultural land conversion cases
+
+
+
+
+3.6  Labor, Employment &amp; HR Law
+
+
+Employment contract review and negotiation
+
+
+Wrongful termination and compensation claims
+
+
+Bangladesh Labor Act 2006 compliance audits
+
+
+Trade union formation and dispute arbitration
+
+
+Workplace harassment and discrimination cases
+
+
+
+
+3.7  Tax, Financial &amp; Banking Law  (Bonus Department)
+
+
+VAT and income tax dispute representation (NBR)
+
+
+Banking loan recovery (Artha Rin Adalat)
+
+
+Financial fraud and money laundering defense
+
+
+Insurance claim disputes
+
+
+Anti-Corruption Commission (ACC) cases
+
+
+
+
+3.8  Immigration, Human Rights &amp; International Law  (Bonus Department)
+
+
+Visa, work permit, and residency applications
+
+
+Human trafficking victim representation
+
+
+International arbitration and trade disputes
+
+
+Refugee and asylum law
+
+
+NGO and foreign organization compliance
+
+
+
+
+
+4. Core Features — Full Upgrade
+
+
+
+
+4.1  The Job Board (Legal Gig Marketplace)
+
+The centerpiece feature that transforms LegalConnect from a directory into a true marketplace:
+
+
+Clients post &quot;Legal Cases&quot; with title, department tag, description, budget range (BDT), and deadline
+
+
+Cases are visible to all verified lawyers in the matched department
+
+
+Lawyers submit &quot;Proposals&quot; including a cover letter, proposed fee, timeline, and relevant experience
+
+
+Clients review proposals side-by-side and Accept, Decline, or Request More Info
+
+
+Upon acceptance, a Workspace is automatically created for that contract
+
+
+
+
+4.2  Smart Lawyer Profiles with Dynamic SEO
+
+
+Every lawyer gets a unique, SEO-optimized URL: /lawyers/[slug] (e.g., /lawyers/sara-hossain-ip-law)
+
+
+Profile includes: photo, bio, bar registration number, verified badge, department tags, years of experience
+
+
+Public review scores, completed case count, response rate, and featured case studies
+
+
+Next.js generateMetadata() creates individual Open Graph metadata for each lawyer page
+
+
+Structured JSON-LD schema for Google lawyer/attorney rich results
+
+
+
+
+4.3  Case Workspace &amp; Milestone Tracking
+
+
+Each accepted contract creates a private Workspace visible only to the assigned lawyer and client
+
+
+Case is broken into user-defined Milestones (e.g., Filing, Discovery, Hearing, Verdict, Appeal)
+
+
+Each milestone has a status: Pending / In Progress / Completed / Blocked
+
+
+Visual progress bar at workspace top showing overall case completion percentage
+
+
+Court date calendar with automated reminders via Supabase Edge Functions + email
+
+
+
+
+4.4  Secure Document Vault
+
+
+All file uploads stored in Supabase Storage with bucket-level access control
+
+
+Signed URL generation on each access request — links expire after 15 minutes
+
+
+File categories: Evidence, Contracts, Court Orders, Personal ID, Correspondences
+
+
+Version history: re-upload creates a new version, old versions archived not deleted
+
+
+Audit log of every file access event (who viewed, when, IP address)
+
+
+
+
+4.5  Real-Time Chat System
+
+
+Built on Supabase Realtime Channels — no third-party service dependency
+
+
+Each Workspace has its own dedicated chat thread (channel isolation by contract_id)
+
+
+Lawyers can only message clients they have an active contract with (RLS enforced)
+
+
+File sharing inline in chat with automatic upload to Document Vault
+
+
+Read receipts, typing indicators, and timestamp display
+
+
+
+
+4.6  Review &amp; Credibility System
+
+
+Clients can leave a star rating (1–5) and detailed review after case closure
+
+
+Lawyers can respond publicly to reviews (one response per review)
+
+
+LegalConnect Verified Badge: awarded after credentials are checked by admin
+
+
+Composite score shown publicly: weighted average of last 12 months of reviews
+
+
+Flagging system for fake reviews — flagged reviews go to admin moderation queue
+
+
+
+
+4.7  Admin Control Panel
+
+
+Full CRUD on users, lawyers, departments, job listings
+
+
+Lawyer verification workflow: review bar registration, NID, and credentials
+
+
+Dispute resolution tools: freeze a workspace, flag a user, issue a warning
+
+
+Platform analytics dashboard: active jobs, proposal conversion rate, revenue
+
+
+Content management: update department descriptions, banners, and FAQ
+
+
+
+
+4.8  Notification Engine
+
+
+In-app notifications powered by Supabase Realtime (notification bell with unread count)
+
+
+Email notifications via Resend API triggered by Supabase Edge Functions
+
+
+Push notifications for: new proposals received, bid accepted, milestone updated, new message
+
+
+Weekly digest email: case status summary for active clients
+
+
+
+
+
+5. Technical Architecture
+
+
+
+
+5.1  Technology Stack
+Layer
+Technology
+Purpose
+Frontend
+Next.js 14+ (App Router, TypeScript)
+Server-side rendering, dynamic routing, React Server Components
+Styling
+Tailwind CSS + shadcn/ui
+Utility-first, accessible component system
+Backend / BaaS
+Supabase (PostgreSQL + Auth + Edge Functions)
+Database, authentication, serverless logic
+Real-time
+Supabase Realtime Channels
+Live chat, notifications, and case updates
+Storage
+Supabase Storage
+Secure legal document vault with signed URLs
+Email
+Resend API
+Transactional emails and weekly digests
+SEO
+Next.js generateMetadata + JSON-LD
+Dynamic lawyer profile SEO for Google rich results
+State Management
+Zustand + React Query (TanStack)
+Global state and server data caching
+Deployment
+Vercel (Frontend) + Supabase Cloud
+Auto-scaling, edge deployment
+
+
+
+
+5.2  Database Schema (Core Entities)
+
+The relational schema is designed to support the full freelance workflow with strict data isolation:
+
+
+Table
+Key Columns
+Relationships
+profiles
+id (UUID, FK → auth.users), role (client/lawyer/admin), full_name, avatar_url, bio, slug, bar_reg_no, is_verified
+1:1 with auth.users
+departments
+id, name, slug, description, icon_name, is_active
+1:N with lawyer_departments
+lawyer_departments
+lawyer_id (FK → profiles), department_id (FK → departments), is_primary
+M:N join between profiles and departments
+jobs
+id, client_id (FK → profiles), title, description, department_id, budget_min, budget_max, deadline, status (open/closed/awarded)
+N:1 with profiles, departments
+proposals
+id, job_id (FK → jobs), lawyer_id (FK → profiles), cover_letter, proposed_fee, timeline_days, status (pending/accepted/rejected)
+N:1 with jobs and profiles
+contracts
+id, job_id, client_id, lawyer_id, agreed_fee, start_date, status (active/completed/disputed)
+1:1 with accepted proposal
+milestones
+id, contract_id (FK → contracts), title, description, phase, status, due_date, completed_at
+N:1 with contracts
+messages
+id, contract_id (FK → contracts), sender_id (FK → profiles), content, file_url, created_at, read_at
+N:1 with contracts
+documents
+id, contract_id, uploader_id, file_path, file_name, category, version, created_at
+Stored path to Supabase Storage
+reviews
+id, contract_id, reviewer_id, reviewee_id, rating (1-5), comment, lawyer_response, is_flagged
+1:1 with completed contracts
+notifications
+id, user_id (FK → profiles), type, title, body, metadata (JSONB), is_read, created_at
+N:1 with profiles
+
+
+
+
+5.3  Security — Row Level Security (RLS) Policies
+
+Supabase RLS is the cornerstone of client-attorney privilege on the platform. Every sensitive table has policies that enforce data isolation at the database level — no amount of API manipulation can bypass these:
+
+
+Table
+RLS Policy
+Effect
+messages
+contract_id must belong to authenticated user as client OR lawyer
+A lawyer cannot read another lawyer&apos;s client messages
+documents
+contract_id must belong to authenticated user + is_verified must be true for lawyer
+Unverified lawyers cannot access any client files
+contracts
+Only client_id and lawyer_id of that contract can SELECT
+Contracts are fully private to participants
+proposals
+Lawyers can only see their own proposals; clients see proposals for their jobs
+Prevents price collusion between competing lawyers
+milestones
+Read/write restricted to contract participants only
+Case progress is invisible to non-participants
+reviews
+Clients can INSERT once per contract; lawyers can UPDATE only own response field
+Prevents fake review flooding
+
+
+
+
+5.4  Serverless Logic — Next.js Server Actions
+
+Business-critical logic runs in Next.js Server Actions (server-only code with no client exposure):
+
+
+submitProposal(): Validates lawyer is verified, job is still open, no duplicate proposal exists
+
+
+acceptProposal(): Marks proposal as accepted, closes job, creates contract row atomically
+
+
+generateSignedUrl(): Creates time-limited (15-min) Supabase Storage URLs for document access
+
+
+closeCaseAndTriggerReview(): Marks contract complete, sends review request email via Resend
+
+
+flagReview(): Marks review as flagged, creates admin notification for moderation
+
+
+
+
+
+6. User Roles &amp; Workflows
+
+
+Role
+Permissions &amp; Capabilities
+Client
+Register, post legal jobs, review proposals, accept bids, access Workspace, upload documents, track milestones, chat with lawyer, leave reviews, view case history
+Lawyer (Unverified)
+Register, set up profile with department tags, browse jobs, submit proposals — CANNOT access client documents until verified
+Lawyer (Verified)
+All of above + access Document Vault, appear in search results, receive Verified badge, eligible for Featured placement
+Admin
+Full platform management: verify lawyers, moderate reviews, resolve disputes, manage departments, view analytics dashboard, manage featured listings
+
+
+
+
+
+7. Monetization Strategy
+
+LegalConnect employs a multi-stream revenue model appropriate for a freelance marketplace:
+
+
+Revenue Stream
+Model
+Rate / Detail
+Service Commission
+Platform fee deducted from lawyer&apos;s payment on contract completion
+10% of agreed contract value (standard industry rate for legal platforms)
+Lawyer Subscription
+Monthly SaaS plan for lawyers with premium features
+Free: 3 proposals/month | Pro (BDT 999/mo): unlimited bids + analytics
+Featured Profile Placement
+Lawyers pay to appear at the top of department search results
+BDT 1,500–3,000 / 30-day campaign, max 3 featured per department
+Verified Fast-Track
+Expedited credential verification for lawyers (standard is 5–7 days)
+BDT 500 one-time fee for 24-hour verification turnaround
+Enterprise Client Accounts
+Corporate clients (law firms, companies) get a dedicated team dashboard
+Custom pricing, negotiated annual contracts
+
+
+
+Revenue Projection Note
+
+At 100 completed contracts/month averaging BDT 10,000 each, the 10% commission alone yields BDT 100,000/month. This scales linearly with platform growth. Subscription revenue provides predictable MRR independent of transaction volume.
+
+
+
+
+
+8. Implementation Roadmap
+
+
+
+
+Phase 1 — MVP: Foundation &amp; Authentication  (Weeks 1–4)
+Task
+Details
+Priority
+Project Setup
+Next.js 14 + Supabase init, Tailwind + shadcn/ui, TypeScript config, ESLint + Prettier
+Critical
+Auth System
+Supabase Auth with email/password + Google OAuth; role-based redirect (client vs lawyer vs admin)
+Critical
+Profile System
+Lawyer profile builder: photo upload, bio, bar registration, department selection
+Critical
+Department Seed
+Seed 8 departments with slugs, icons, and descriptions into database
+High
+Basic Lawyer Directory
+Public /lawyers page with search, filter by department, pagination
+High
+RLS Policies
+Write and test all Row Level Security policies for profiles, jobs, proposals tables
+Critical
+
+
+
+
+Phase 2 — V1: Bidding, Workspaces &amp; Chat  (Weeks 5–10)
+Task
+Details
+Priority
+Job Board
+Client job posting form; public job feed filtered by department; job detail page
+Critical
+Proposal System
+Lawyer proposal submission; client proposal review dashboard; accept/reject flow
+Critical
+Contract Creation
+Server Action: acceptProposal() creates contract atomically; auto-creates default milestones
+Critical
+Workspace UI
+Workspace page with milestone tracker, progress bar, and timeline view
+High
+Real-time Chat
+Supabase Realtime channel per contract; message list; file share in chat
+High
+Document Vault
+Supabase Storage integration; file upload with category; signed URL generation
+High
+Notification System
+In-app notification bell; Supabase Realtime for live updates; Resend for email
+Medium
+
+
+
+
+Phase 3 — V2: Payments, Reviews &amp; SEO  (Weeks 11–16)
+Task
+Details
+Priority
+Review System
+Post-contract review flow; star rating; lawyer response; public display on profile
+High
+Dynamic SEO Profiles
+generateMetadata() per lawyer slug; JSON-LD schema; Open Graph cards
+High
+Admin Panel
+Lawyer verification workflow; dispute resolution tools; platform analytics
+High
+Payment Integration
+SSLCommerz or bKash integration for contract payments; escrow-style release on completion
+High
+Subscription Plans
+Stripe or manual billing for lawyer Pro subscriptions; feature gating by plan
+Medium
+Mobile Responsiveness
+Full responsive audit, mobile nav, touch-optimized forms and document viewer
+Medium
+Performance &amp; Security Audit
+Lighthouse audit &gt;90, Supabase RLS penetration test, OWASP checklist
+Critical
+
+
+
+
+
+9. Conclusion
+
+LegalConnect in its upgraded form is not merely a mobile app — it is a complete digital ecosystem for legal services in Bangladesh. By adopting the proven freelance marketplace model (used globally by platforms like Upwork and Toptal) and applying it to the legal domain, the platform addresses a significant market gap.
+
+
+
+The combination of Next.js for performance and SEO, Supabase for real-time capabilities and security, and a carefully designed freelance workflow makes LegalConnect technically robust and commercially viable. The departmental structure, milestone-based case tracking, secure document vault, and competitive bidding system collectively deliver a product that is simultaneously more transparent, more accessible, and more trustworthy than any existing legal service option in Bangladesh.
+
+
+
+This upgrade represents the evolution from a student project to a startup-grade product — a demonstration of full-stack engineering competency, product thinking, and real-world impact design.
+
+
+
+Final Statement
+
+LegalConnect: Where expertise meets opportunity, and justice becomes accessible to all — one gig at a time.
+
+
+
+
+Prepared by Mahpara Alam Tahia &amp; Ramim Rashid  |  Supervised by Shad Al Kaisar
+
+
+
