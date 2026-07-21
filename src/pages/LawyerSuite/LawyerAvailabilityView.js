@@ -14,51 +14,54 @@ const LawyerAvailabilityView = () => {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
+  const fetchAvailability = async () => {
     if (!user) return;
-    const fetchAvailability = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('availability_rules')
-          .select('*')
-          .eq('lawyer_id', user.id);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('availability_rules')
+        .select('*')
+        .eq('lawyer_id', user.id);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        // Default empty state
-        const initialSchedule = {
-          Monday: { active: false, start: '09:00', end: '17:00', day_of_week: 1 },
-          Tuesday: { active: false, start: '09:00', end: '17:00', day_of_week: 2 },
-          Wednesday: { active: false, start: '09:00', end: '17:00', day_of_week: 3 },
-          Thursday: { active: false, start: '09:00', end: '17:00', day_of_week: 4 },
-          Friday: { active: false, start: '09:00', end: '15:00', day_of_week: 5 },
-          Saturday: { active: false, start: '10:00', end: '14:00', day_of_week: 6 },
-          Sunday: { active: false, start: '10:00', end: '14:00', day_of_week: 0 }
-        };
+      // Default empty state
+      const initialSchedule = {
+        Monday: { active: false, start: '09:00', end: '17:00', day_of_week: 1 },
+        Tuesday: { active: false, start: '09:00', end: '17:00', day_of_week: 2 },
+        Wednesday: { active: false, start: '09:00', end: '17:00', day_of_week: 3 },
+        Thursday: { active: false, start: '09:00', end: '17:00', day_of_week: 4 },
+        Friday: { active: false, start: '09:00', end: '15:00', day_of_week: 5 },
+        Saturday: { active: false, start: '10:00', end: '14:00', day_of_week: 6 },
+        Sunday: { active: false, start: '10:00', end: '14:00', day_of_week: 0 }
+      };
 
-        if (data && data.length > 0) {
-          data.forEach(rule => {
-            const dayName = DAYS_MAP[rule.day_of_week];
-            if (initialSchedule[dayName]) {
-              initialSchedule[dayName] = {
-                id: rule.id,
-                active: rule.is_available,
-                start: rule.start_time.substring(0, 5),
-                end: rule.end_time.substring(0, 5),
-                day_of_week: rule.day_of_week
-              };
-            }
-          });
-        }
-        
-        setSchedule(initialSchedule);
-      } catch (err) {
-        console.error('Error fetching availability:', err);
-      } finally {
-        setLoading(false);
+      if (data && data.length > 0) {
+        data.forEach(rule => {
+          const dayName = DAYS_MAP[rule.day_of_week];
+          if (initialSchedule[dayName]) {
+            initialSchedule[dayName] = {
+              id: rule.id,
+              active: rule.is_available,
+              start: rule.start_time.substring(0, 5),
+              end: rule.end_time.substring(0, 5),
+              day_of_week: rule.day_of_week
+            };
+          }
+        });
       }
-    };
+
+      setSchedule(initialSchedule);
+    } catch (err) {
+      console.error('Error fetching availability:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchAvailability();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const toggleDay = (day) => {
@@ -249,8 +252,8 @@ const LawyerAvailabilityView = () => {
                 className="w-full py-3 bg-secondary-container text-primary font-bold rounded-lg hover:bg-white transition-colors active:scale-95 shadow-lg mb-3">
                 {isSaving ? 'Saving...' : 'Save Availability'}
               </button>
-              <button 
-                onClick={() => window.location.reload()}
+              <button
+                onClick={fetchAvailability}
                 className="w-full py-2.5 border border-primary-container text-on-primary-container font-bold rounded-lg hover:bg-primary-container transition-colors active:scale-95">
                 Revert Changes
               </button>

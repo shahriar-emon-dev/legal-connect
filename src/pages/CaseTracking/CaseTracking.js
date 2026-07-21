@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { realtimeSync } from '../../services/realtimeSync.service';
@@ -50,6 +50,7 @@ const CaseTracking = () => {
   const { user } = useAuth();
   const { caseId } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Data states
   const [items, setItems] = useState([]);
@@ -59,14 +60,28 @@ const CaseTracking = () => {
   const [errorState, setErrorState] = useState(false);
 
   // Filter & Search & Modal states
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
-  const [sortOrder, setSortOrder] = useState('UPDATED_DESC');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'ALL');
+  const [sortOrder, setSortOrder] = useState(searchParams.get('sort') || 'UPDATED_DESC');
   const [selectedCaseModal, setSelectedCaseModal] = useState(null);
   const [submittingAction, setSubmittingAction] = useState(false);
   const [revisionNoteInput, setRevisionNoteInput] = useState('');
   const [showRevisionForm, setShowRevisionForm] = useState(false);
   const [reviewingCase, setReviewingCase] = useState(null);
+
+  // Sync filter states with URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+    else params.delete('q');
+    if (statusFilter && statusFilter !== 'ALL') params.set('status', statusFilter);
+    else params.delete('status');
+    if (sortOrder && sortOrder !== 'UPDATED_DESC') params.set('sort', sortOrder);
+    else params.delete('sort');
+    if (params.toString() !== searchParams.toString()) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [searchQuery, statusFilter, sortOrder, setSearchParams, searchParams]);
 
   const fetchDashboardData = useCallback(async (isManualRefresh = false) => {
     const clientId = user?.id || user?.auth_id;

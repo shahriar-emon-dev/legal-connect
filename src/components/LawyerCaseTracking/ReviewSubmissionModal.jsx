@@ -128,7 +128,7 @@ const ReviewSubmissionModal = ({ caseItem, contractId, lawyerId, onClose, onSucc
         toast.success('Your review has been updated successfully!');
       } else {
         // Submit via secure RPC first, fallback to direct insert if RPC not applied yet
-        const { data: rpcData, error: rpcErr } = await supabase.rpc('fn_submit_review', {
+        const { error: rpcErr } = await supabase.rpc('fn_submit_review', {
           p_contract_id: targetContractId,
           p_rating: rating,
           p_comment: comment.trim(),

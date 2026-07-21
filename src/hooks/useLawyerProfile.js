@@ -45,8 +45,11 @@ export function useLawyerProfile() {
     fetchProfile();
 
     const unsub = realtimeSync.subscribe((payload) => {
+      // Audit #36: this used to also refetch on ANY event missing a userId,
+      // or on any APPROVED/REJECTED action for ANY lawyer — triggering
+      // unnecessary refetches from unrelated users' approval events.
       const uId = user.auth_id || user.id;
-      if (payload.userId === uId || !payload.userId || payload.action === 'APPROVED' || payload.action === 'REJECTED') {
+      if (payload.userId === uId) {
         fetchProfile();
       }
     });
@@ -72,7 +75,7 @@ export function useLawyerProfile() {
       const { error } = await Promise.race([
         supabase
           .from('lawyers')
-          .upsert({ user_id: user.auth_id || user.id, ...dbUpdates, updated_at: new Date() }, { onConflict: 'user_id' }),
+          .upsert({ user_id: user.auth_id || user.id, ...dbUpdates, updated_at: new Date().toISOString() }, { onConflict: 'user_id' }),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out. Please check your internet connection or reload the page.')), 10000))
       ]);
       if (error) throw error;

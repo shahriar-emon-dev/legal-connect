@@ -119,9 +119,25 @@ export default function useRealtimeChat(workspaceId) {
 
 export { useRealtimeChat as useChatSocket };
 
+// Audit #19: a new AudioContext was created on every incoming message and
+// never closed. Browsers cap concurrent AudioContexts (~6), so a busy chat
+// session would eventually exhaust them. Reuse a single lazily-created one.
+let sharedAudioContext = null;
+
+function getSharedAudioContext() {
+  if (!sharedAudioContext) {
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) return null;
+    sharedAudioContext = new AudioContextCtor();
+  }
+  return sharedAudioContext;
+}
+
 function playPing() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getSharedAudioContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);

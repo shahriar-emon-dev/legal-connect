@@ -19,6 +19,7 @@ const FlaggedReviews = () => {
         .from('reviews')
         .select('*, reports:review_reports(*), replies:review_replies(*)')
         .order('created_at', { ascending: false });
+      if (prodErr) console.warn('Failed to fetch reviews table:', prodErr.message);
 
       // 2. Fetch from legacy `feedback` table
       const { data: legacyData } = await supabase

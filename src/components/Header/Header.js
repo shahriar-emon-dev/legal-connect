@@ -32,6 +32,15 @@ const Header = () => {
           
           {/* Desktop Nav */}
           <nav className="hidden md:flex gap-6 items-center">
+            <button
+              onClick={() => window.dispatchEvent(new Event('open-global-search'))}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200/80 text-gray-600 transition-all text-xs font-bold border border-gray-200/60 shadow-2xs group"
+              title="Search directory and records (Ctrl+K)"
+            >
+              <span className="material-symbols-outlined text-[17px] text-gray-500 group-hover:text-[#041635]">search</span>
+              <span>Search...</span>
+              <kbd className="hidden lg:inline-block px-1.5 py-0.5 bg-white text-gray-500 rounded font-mono text-[10px] shadow-2xs">⌘K</kbd>
+            </button>
             <Link to="/lawyers" className="text-on-surface-variant hover:text-primary transition-colors duration-200 font-body-md text-body-md">Find Lawyers</Link>
             <Link to="/jobs" className="text-on-surface-variant hover:text-primary transition-colors duration-200 font-body-md text-body-md">Job Board</Link>
             <Link to="/legal-updates" className="text-on-surface-variant hover:text-primary transition-colors duration-200 font-body-md text-body-md">Updates</Link>
@@ -80,9 +89,19 @@ const Header = () => {
 
       {/* Mobile Nav */}
       {isMenuOpen && (
-        <nav className="md:hidden bg-surface-container-lowest border-t border-outline-variant p-4 flex flex-col gap-4 shadow-lg absolute w-full left-0">
-            <Link to="/lawyers" onClick={close} className="text-on-surface-variant hover:text-primary">Find Lawyers</Link>
-            <Link to="/jobs" onClick={close} className="text-on-surface-variant hover:text-primary">Job Board</Link>
+        <nav className="md:hidden bg-surface-container-lowest border-t border-outline-variant p-4 flex flex-col gap-4 shadow-lg absolute w-full left-0 animate-fadeIn">
+            <button
+              onClick={() => { close(); window.dispatchEvent(new Event('open-global-search')); }}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-gray-100 text-gray-700 font-bold text-sm border border-gray-200"
+            >
+              <span className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-[20px] text-[#041635]">search</span>
+                <span>Search Advocates, Cases & Jobs</span>
+              </span>
+              <kbd className="px-2 py-0.5 bg-white rounded text-[11px] text-gray-500 shadow-2xs">Ctrl+K</kbd>
+            </button>
+            <Link to="/lawyers" onClick={close} className="text-on-surface-variant hover:text-primary font-medium">Find Lawyers</Link>
+            <Link to="/jobs" onClick={close} className="text-on-surface-variant hover:text-primary font-medium">Job Board</Link>
             <Link to="/legal-updates" onClick={close} className="text-on-surface-variant hover:text-primary">Legal Updates</Link>
             <Link to="/contact" onClick={close} className="text-on-surface-variant hover:text-primary">Contact</Link>
             <Link to="/ai-advisor" onClick={close} className="text-on-surface-variant hover:text-primary font-semibold flex items-center gap-1"><span className="material-symbols-outlined text-[18px]">smart_toy</span> AI Advisor</Link>

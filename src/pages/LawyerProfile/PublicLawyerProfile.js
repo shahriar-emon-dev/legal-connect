@@ -5,14 +5,6 @@ import toast from 'react-hot-toast';
 import { realtimeSync } from '../../services/realtimeSync.service';
 import FeedbackRatings from '../FeedbackRatings/FeedbackRatings';
 
-const timeAgo = (date) => {
-  const s = Math.floor((Date.now() - new Date(date)) / 1000);
-  if (s < 86400) return 'Today';
-  if (s < 604800) return `${Math.floor(s / 86400)}d ago`;
-  if (s < 2592000) return `${Math.floor(s / 604800)}w ago`;
-  return new Date(date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-};
-
 const PublicLawyerProfile = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -134,12 +126,6 @@ const PublicLawyerProfile = () => {
   const avgRating = totalReviews > 0 
     ? (reviewsData.reduce((s, r) => s + r.rating, 0) / totalReviews).toFixed(1)
     : Number(lawyer.avg_rating || 0).toFixed(1);
-
-  const starBreakdown = [5, 4, 3, 2, 1].map(star => {
-    const count = reviewsData.filter(r => r.rating === star).length;
-    const pct = totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0;
-    return { star, pct };
-  });
 
   return (
     <div className="bg-surface font-body-md text-on-surface">

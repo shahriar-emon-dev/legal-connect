@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { realtimeSync } from '../../services/realtimeSync.service';
 
 const LawyerDashboardView = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     activeAppointments: 0,
     openCases: 0,
@@ -349,7 +350,7 @@ const LawyerDashboardView = () => {
                     </div>
                   )}
                 </div>
-                <button onClick={() => window.location.href = `/lawyer-suite/cases/${c.id}`} className="w-full py-2 border border-outline text-primary font-bold text-xs uppercase tracking-widest rounded hover:bg-secondary-fixed transition-colors active:scale-95">View Details</button>
+                <button onClick={() => navigate(`/lawyer-suite/cases/${c.id}`)} className="w-full py-2 border border-outline text-primary font-bold text-xs uppercase tracking-widest rounded hover:bg-secondary-fixed transition-colors active:scale-95">View Details</button>
               </div>
             );
             }) : (

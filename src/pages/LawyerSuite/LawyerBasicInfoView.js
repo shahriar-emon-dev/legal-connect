@@ -39,29 +39,35 @@ const LawyerBasicInfoView = () => {
   }, [user]);
 
   // Initialize form when profile loads
+  const buildFormDataFromProfile = () => profile ? {
+    full_name: profile.full_name || '',
+    years_experience: profile.years_experience || 0,
+    bio: profile.bio || '',
+    primary_location: profile.primary_location || '',
+    contact_email: profile.contact_email || '',
+    contact_phone: profile.contact_phone || '',
+    consultation_formats: profile.consultation_formats || { inPerson: false, online: false, phone: false, video: false }
+  } : {
+    full_name: '',
+    years_experience: 0,
+    bio: '',
+    primary_location: '',
+    contact_email: '',
+    contact_phone: '',
+    consultation_formats: { inPerson: false, online: false, phone: false, video: false }
+  };
+
   useEffect(() => {
-    if (profile) {
-      setFormData({
-        full_name: profile.full_name || '',
-        years_experience: profile.years_experience || 0,
-        bio: profile.bio || '',
-        primary_location: profile.primary_location || '',
-        contact_email: profile.contact_email || '',
-        contact_phone: profile.contact_phone || '',
-        consultation_formats: profile.consultation_formats || { inPerson: false, online: false, phone: false, video: false }
-      });
-    } else if (!loading && !profile) {
-      setFormData({
-        full_name: '',
-        years_experience: 0,
-        bio: '',
-        primary_location: '',
-        contact_email: '',
-        contact_phone: '',
-        consultation_formats: { inPerson: false, online: false, phone: false, video: false }
-      });
+    if (profile || !loading) {
+      setFormData(buildFormDataFromProfile());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, loading]);
+
+  // Audit #25: this used to be window.location.reload(), which threw away
+  // the whole SPA state (auth context, realtime subscriptions) just to reset
+  // one form. Re-derive from the already-loaded profile instead.
+  const handleDiscard = () => setFormData(buildFormDataFromProfile());
 
   if (loading) return <div className="p-8 text-center animate-pulse">Loading profile...</div>;
   if (!formData) return null;
@@ -212,7 +218,7 @@ const LawyerBasicInfoView = () => {
           <p className="text-on-surface-variant font-body-md mt-1">Update your professional identity and contact details.</p>
         </div>
         <div className="flex gap-3">
-          <button className="px-6 py-2 border border-primary text-primary rounded-lg font-label-md hover:bg-surface-container-low transition-colors active:scale-95" onClick={() => window.location.reload()}>Discard</button>
+          <button className="px-6 py-2 border border-primary text-primary rounded-lg font-label-md hover:bg-surface-container-low transition-colors active:scale-95" onClick={handleDiscard}>Discard</button>
           <button className="px-6 py-2 bg-primary text-white rounded-lg font-label-md hover:bg-secondary transition-colors shadow-sm active:scale-95" onClick={handleSave} disabled={isSaving}>
             {isSaving ? 'Saving...' : 'Save Changes'}
           </button>

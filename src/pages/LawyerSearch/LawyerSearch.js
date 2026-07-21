@@ -1,12 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { realtimeSync } from '../../services/realtimeSync.service';
+import { toast } from 'react-hot-toast';
 
 const LawyerSearch = () => {
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const initialDept = searchParams.get('department') || '';
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Read initial values from URL params
+  const initialDept = searchParams.get('department') || searchParams.get('dept') || '';
+  const initialQuery = searchParams.get('q') || '';
+  const initialLoc = searchParams.get('loc') || '';
+  const initialRate = Number(searchParams.get('maxRate')) || 10000;
+  const initialRating = Number(searchParams.get('minRating')) || 0;
+  const initialExp = Number(searchParams.get('minExp')) || 0;
+  const initialSort = searchParams.get('sort') || 'Top Rated';
 
   const [lawyers, setLawyers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,16 +22,34 @@ const LawyerSearch = () => {
   const [totalCount, setTotalCount] = useState(0);
 
   // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDepts, setSelectedDepts] = useState(initialDept ? [initialDept] : []);
-  const [locationQuery, setLocationQuery] = useState('');
-  const [maxRate, setMaxRate] = useState(10000);
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [selectedDepts, setSelectedDepts] = useState(initialDept ? initialDept.split(',').filter(Boolean) : []);
+  const [locationQuery, setLocationQuery] = useState(initialLoc);
+  const [maxRate, setMaxRate] = useState(initialRate);
+  const [minRating, setMinRating] = useState(initialRating);
+  const [minExp, setMinExp] = useState(initialExp);
+  const [onlyImmediate, setOnlyImmediate] = useState(false);
   
-  const [sortOption, setSortOption] = useState('Top Rated');
+  const [sortOption, setSortOption] = useState(initialSort);
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
+
+  // Synchronize active filters with URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+    if (selectedDepts.length > 0) params.set('dept', selectedDepts.join(','));
+    if (locationQuery.trim()) params.set('loc', locationQuery.trim());
+    if (maxRate < 10000) params.set('maxRate', maxRate.toString());
+    if (minRating > 0) params.set('minRating', minRating.toString());
+    if (minExp > 0) params.set('minExp', minExp.toString());
+    if (sortOption !== 'Top Rated') params.set('sort', sortOption);
+    if (params.toString() !== searchParams.toString()) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [searchQuery, selectedDepts, locationQuery, maxRate, minRating, minExp, sortOption, setSearchParams, searchParams]);
 
   const [practiceAreas, setPracticeAreas] = useState([]);
   const [legalExpertise, setLegalExpertise] = useState([]);
@@ -36,7 +62,7 @@ const LawyerSearch = () => {
   useEffect(() => {
     fetchLawyers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, selectedDepts, locationQuery, maxRate, sortOption, currentPage]);
+  }, [searchQuery, selectedDepts, locationQuery, maxRate, minRating, minExp, onlyImmediate, sortOption, currentPage]);
 
   // Re-fetch when any lawyer verification status changes (realtime)
   useEffect(() => {
@@ -154,8 +180,20 @@ const LawyerSearch = () => {
         });
       }
 
+      if (minRating > 0) {
+        filteredData = filteredData.filter(l => (l.avg_rating || l.rating || 0) >= minRating);
+      }
+
+      if (minExp > 0) {
+        filteredData = filteredData.filter(l => (l.experience_years || 0) >= minExp);
+      }
+
+      if (onlyImmediate) {
+        filteredData = filteredData.filter(l => l.is_verified);
+      }
+
       // ── 5. Sort ──
-      if (sortOption === 'Top Rated')      filteredData.sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0));
+      if (sortOption === 'Top Rated')      filteredData.sort((a, b) => (b.avg_rating || b.rating || 0) - (a.avg_rating || a.rating || 0));
       else if (sortOption === 'Highest Price') filteredData.sort((a, b) => (b.hourly_rate || 0) - (a.hourly_rate || 0));
       else if (sortOption === 'Lowest Price')  filteredData.sort((a, b) => (a.hourly_rate || 0) - (b.hourly_rate || 0));
       else if (sortOption === 'Experience')    filteredData.sort((a, b) => (b.experience_years || 0) - (a.experience_years || 0));
@@ -170,13 +208,50 @@ const LawyerSearch = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, selectedDepts, locationQuery, maxRate, sortOption, currentPage, legalExpertise, practiceAreas]);
+  }, [searchQuery, selectedDepts, locationQuery, maxRate, minRating, minExp, onlyImmediate, sortOption, currentPage, legalExpertise, practiceAreas]);
 
   const handleDeptToggle = (name) => {
     setSelectedDepts(prev => 
       prev.includes(name) ? prev.filter(d => d !== name) : [...prev, name]
     );
     setCurrentPage(1);
+  };
+
+  const resetAllFilters = () => {
+    setSearchQuery('');
+    setSelectedDepts([]);
+    setLocationQuery('');
+    setMaxRate(10000);
+    setMinRating(0);
+    setMinExp(0);
+    setOnlyImmediate(false);
+    setSortOption('Top Rated');
+    setCurrentPage(1);
+    toast.success('All filters reset.');
+  };
+
+  const saveFilterPreset = () => {
+    const preset = { searchQuery, selectedDepts, locationQuery, maxRate, minRating, minExp, sortOption };
+    localStorage.setItem('legalconnect_saved_lawyer_filter', JSON.stringify(preset));
+    toast.success('Filter configuration saved!');
+  };
+
+  const loadFilterPreset = () => {
+    const saved = localStorage.getItem('legalconnect_saved_lawyer_filter');
+    if (saved) {
+      const p = JSON.parse(saved);
+      if (p.searchQuery !== undefined) setSearchQuery(p.searchQuery);
+      if (p.selectedDepts !== undefined) setSelectedDepts(p.selectedDepts);
+      if (p.locationQuery !== undefined) setLocationQuery(p.locationQuery);
+      if (p.maxRate !== undefined) setMaxRate(p.maxRate);
+      if (p.minRating !== undefined) setMinRating(p.minRating);
+      if (p.minExp !== undefined) setMinExp(p.minExp);
+      if (p.sortOption !== undefined) setSortOption(p.sortOption);
+      setCurrentPage(1);
+      toast.success('Saved filter preset applied!');
+    } else {
+      toast.error('No saved filter preset found.');
+    }
   };
 
   const totalPages = Math.ceil(totalCount / itemsPerPage) || 1;
@@ -307,10 +382,77 @@ const LawyerSearch = () => {
                 <hr className="border-outline-variant"/>
                 
                 <div>
-                  <label className="font-label-sm text-outline mb-sm block">Availability</label>
-                  <div className="flex flex-wrap gap-xs">
-                    <button className="px-sm py-1 bg-primary-fixed text-on-primary-fixed font-label-sm rounded-full">Immediate</button>
-                    <button className="px-sm py-1 bg-surface-container-high text-on-surface-variant font-label-sm rounded-full">Next Week</button>
+                  <label className="font-label-sm text-outline mb-sm block">Minimum Rating</label>
+                  <div className="flex flex-wrap gap-1.5 mb-md">
+                    {[0, 4.0, 4.5, 4.8].map(rt => (
+                      <button
+                        key={rt}
+                        onClick={() => { setMinRating(rt); setCurrentPage(1); }}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                          minRating === rt
+                            ? 'bg-[#041635] text-white shadow-xs'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {rt === 0 ? 'Any Rating' : `${rt}★+`}
+                      </button>
+                    ))}
+                  </div>
+
+                  <label className="font-label-sm text-outline mb-sm block">Experience</label>
+                  <div className="flex flex-wrap gap-1.5 mb-md">
+                    {[0, 3, 5, 10].map(exp => (
+                      <button
+                        key={exp}
+                        onClick={() => { setMinExp(exp); setCurrentPage(1); }}
+                        className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                          minExp === exp
+                            ? 'bg-[#041635] text-white shadow-xs'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {exp === 0 ? 'Any Exp' : `${exp}+ Yrs`}
+                      </button>
+                    ))}
+                  </div>
+
+                  <label className="font-label-sm text-outline mb-sm block">Availability & Verification</label>
+                  <div className="flex flex-wrap gap-1.5 mb-md">
+                    <button
+                      onClick={() => { setOnlyImmediate(!onlyImmediate); setCurrentPage(1); }}
+                      className={`px-3 py-1.5 rounded-xl font-label-sm transition-all flex items-center gap-1.5 ${
+                        onlyImmediate ? 'bg-emerald-600 text-white shadow-xs font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[16px]">{onlyImmediate ? 'check_circle' : 'bolt'}</span>
+                      Verified Immediate
+                    </button>
+                  </div>
+
+                  <hr className="border-outline-variant my-md" />
+
+                  <div className="space-y-2 pt-1">
+                    <button
+                      onClick={saveFilterPreset}
+                      className="w-full py-2 px-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">bookmark</span>
+                      Save Current Filters
+                    </button>
+                    <button
+                      onClick={loadFilterPreset}
+                      className="w-full py-2 px-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">folder_open</span>
+                      Load Saved Preset
+                    </button>
+                    <button
+                      onClick={resetAllFilters}
+                      className="w-full py-2.5 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+                      Reset All Filters
+                    </button>
                   </div>
                 </div>
               </div>

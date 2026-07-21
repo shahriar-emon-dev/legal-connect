@@ -94,8 +94,12 @@ export const useLawyers = (filters = {}) => {
     } finally {
       setLoading(false);
     }
+    // Audit #17: depend on the individual primitive filter values instead of
+    // JSON.stringify(filters) — avoids re-serializing on every render and
+    // sidesteps any key-ordering edge cases, while still being stable across
+    // renders when the caller passes an inline object literal with the same values.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(filters)]);
+  }, [filters.limit, filters.specialization, filters.rating, filters.sort]);
 
   useEffect(() => { fetchLawyers(); }, [fetchLawyers]);
 
@@ -115,13 +119,31 @@ export const fetchSingleLawyer = async (idOrSlug) => {
     !isNaN(parseInt(idOrSlug, 10)) &&
     String(parseInt(idOrSlug, 10)) === String(idOrSlug);
 
-  let query = supabase.from('lawyers').select('*');
-  query = isNumericId
-    ? query.eq('id', parseInt(idOrSlug, 10))
-    : query.or(`slug.eq.${idOrSlug},user_id.eq.${idOrSlug}`);
+  // Audit #22: this used to build a single `.or()` filter string via template
+  // literal interpolation (`slug.eq.${idOrSlug},user_id.eq.${idOrSlug}`),
+  // which is a PostgREST filter-injection smell for a URL-controlled value.
+  // Two separate `.eq()` calls let the client library parameterize the value
+  // instead of splicing it into the filter DSL string.
+  let lawyer = null;
+  if (isNumericId) {
+    const { data, error } = await supabase
+      .from('lawyers').select('*').eq('id', parseInt(idOrSlug, 10)).maybeSingle();
+    if (error) throw error;
+    lawyer = data;
+  } else {
+    const { data: bySlug, error: slugErr } = await supabase
+      .from('lawyers').select('*').eq('slug', idOrSlug).maybeSingle();
+    if (slugErr) throw slugErr;
+    if (bySlug) {
+      lawyer = bySlug;
+    } else {
+      const { data: byUserId, error: userIdErr } = await supabase
+        .from('lawyers').select('*').eq('user_id', idOrSlug).maybeSingle();
+      if (userIdErr) throw userIdErr;
+      lawyer = byUserId;
+    }
+  }
 
-  const { data: lawyer, error } = await query.maybeSingle();
-  if (error) throw error;
   if (!lawyer) return null;
 
   // Enrich with user data via separate query (no FK alias dependency)

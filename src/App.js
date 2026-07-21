@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams, useParams } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -9,6 +9,7 @@ import DashboardLayout from './components/DashboardLayout/DashboardLayout';
 import AdminLayout from './components/AdminLayout/AdminLayout';
 import LawyerSuiteLayout from './components/Layout/LawyerSuiteLayout';
 import ClientPortalLayout from './components/ClientPortalLayout/ClientPortalLayout';
+import GlobalSearchModal from './components/Search/GlobalSearchModal';
 import './App.css';
 
 // Eager imports for instant routing without loading flashes
@@ -41,34 +42,36 @@ import HelpCenterPage from './pages/Public/HelpCenterPage';
 import LegalDocumentsPage from './pages/Public/LegalDocumentsPage';
 import LawyerVerificationInfoPage from './pages/Public/LawyerVerificationInfoPage';
 import LawyerSuccessStoriesPage from './pages/Public/LawyerSuccessStoriesPage';
+import NotFoundPage from './pages/Public/NotFoundPage';
 
-import AdminOverview from './pages/Admin/AdminOverview';
-import UsersManagement from './pages/Admin/UsersManagement';
-import LawyersManagement from './pages/Admin/LawyersManagement';
-import LawyerVerifications from './pages/Admin/LawyerVerifications';
-import ClientVerifications from './pages/Admin/ClientVerifications';
-import CategoryManagement from './pages/Admin/CategoryManagement';
-import JobsManagement from './pages/Admin/JobsManagement';
-import FlaggedReviews from './pages/Admin/FlaggedReviews';
-import AdminSettings from './pages/Admin/AdminSettings';
-import AdminNotifications from './pages/Admin/AdminNotifications';
+// Code-Split / Lazy imports for Admin & Lawyer Suite to optimize bundle size
+const AdminOverview = React.lazy(() => import('./pages/Admin/AdminOverview'));
+const UsersManagement = React.lazy(() => import('./pages/Admin/UsersManagement'));
+const LawyersManagement = React.lazy(() => import('./pages/Admin/LawyersManagement'));
+const LawyerVerifications = React.lazy(() => import('./pages/Admin/LawyerVerifications'));
+const ClientVerifications = React.lazy(() => import('./pages/Admin/ClientVerifications'));
+const CategoryManagement = React.lazy(() => import('./pages/Admin/CategoryManagement'));
+const JobsManagement = React.lazy(() => import('./pages/Admin/JobsManagement'));
+const FlaggedReviews = React.lazy(() => import('./pages/Admin/FlaggedReviews'));
+const AdminSettings = React.lazy(() => import('./pages/Admin/AdminSettings'));
+const AdminNotifications = React.lazy(() => import('./pages/Admin/AdminNotifications'));
 
-import LawyerDashboardView from './pages/LawyerSuite/LawyerDashboardView';
-import LawyerBasicInfoView from './pages/LawyerSuite/LawyerBasicInfoView';
-import LawyerCredentialsView from './pages/LawyerSuite/LawyerCredentialsView';
-import LawyerVerificationView from './pages/LawyerSuite/LawyerVerificationView';
-import LawyerAvailabilityView from './pages/LawyerSuite/LawyerAvailabilityView';
-import ConsultationSettings from './pages/LawyerSuite/ConsultationSettings';
-import LawyerPortfolioView from './pages/LawyerSuite/LawyerPortfolioView';
-import LawyerAnalyticsView from './pages/LawyerSuite/LawyerAnalyticsView';
-import LawyerCasesView from './pages/LawyerSuite/LawyerCasesView';
-import LawyerAppointmentsView from './pages/LawyerSuite/LawyerAppointmentsView';
-import LawyerContractsView from './pages/LawyerSuite/LawyerContractsView';
-import LawyerBillingView from './pages/LawyerSuite/LawyerBillingView';
-import LawyerNotificationsView from './pages/LawyerSuite/LawyerNotificationsView';
-import LawyerPrivacyView from './pages/LawyerSuite/LawyerPrivacyView';
-import LawyerProposalsView from './pages/LawyerSuite/LawyerProposalsView';
-import FeedbackRatings from './pages/FeedbackRatings/FeedbackRatings';
+const LawyerDashboardView = React.lazy(() => import('./pages/LawyerSuite/LawyerDashboardView'));
+const LawyerBasicInfoView = React.lazy(() => import('./pages/LawyerSuite/LawyerBasicInfoView'));
+const LawyerCredentialsView = React.lazy(() => import('./pages/LawyerSuite/LawyerCredentialsView'));
+const LawyerVerificationView = React.lazy(() => import('./pages/LawyerSuite/LawyerVerificationView'));
+const LawyerAvailabilityView = React.lazy(() => import('./pages/LawyerSuite/LawyerAvailabilityView'));
+const ConsultationSettings = React.lazy(() => import('./pages/LawyerSuite/ConsultationSettings'));
+const LawyerPortfolioView = React.lazy(() => import('./pages/LawyerSuite/LawyerPortfolioView'));
+const LawyerAnalyticsView = React.lazy(() => import('./pages/LawyerSuite/LawyerAnalyticsView'));
+const LawyerCasesView = React.lazy(() => import('./pages/LawyerSuite/LawyerCasesView'));
+const LawyerAppointmentsView = React.lazy(() => import('./pages/LawyerSuite/LawyerAppointmentsView'));
+const LawyerContractsView = React.lazy(() => import('./pages/LawyerSuite/LawyerContractsView'));
+const LawyerBillingView = React.lazy(() => import('./pages/LawyerSuite/LawyerBillingView'));
+const LawyerNotificationsView = React.lazy(() => import('./pages/LawyerSuite/LawyerNotificationsView'));
+const LawyerPrivacyView = React.lazy(() => import('./pages/LawyerSuite/LawyerPrivacyView'));
+const LawyerProposalsView = React.lazy(() => import('./pages/LawyerSuite/LawyerProposalsView'));
+const FeedbackRatings = React.lazy(() => import('./pages/FeedbackRatings/FeedbackRatings'));
 
 const GlobalLoadingFallback = () => (
   <div className="min-h-screen bg-[#F4F6F9] flex flex-col items-center justify-center p-8 text-center animate-fadeIn">
@@ -111,11 +114,35 @@ const ClientPortalIndexRedirect = () => {
   return <Navigate to="overview" replace />;
 };
 
+function GlobalSearchHandler() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsOpen(prev => !prev);
+      }
+    };
+    const handleOpenEvent = () => setIsOpen(true);
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('open-global-search', handleOpenEvent);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('open-global-search', handleOpenEvent);
+    };
+  }, []);
+
+  return <GlobalSearchModal isOpen={isOpen} onClose={() => setIsOpen(false)} />;
+}
+
 function App() {
   return (
     <AuthProvider>
       <Router>
         <div className="App">
+          <GlobalSearchHandler />
           <Toaster
             position="top-right"
             toastOptions={{
@@ -134,7 +161,7 @@ function App() {
                   <Route path="/login" element={<ErrorBoundary><Login /></ErrorBoundary>} />
                   <Route path="/register" element={<ErrorBoundary><Register /></ErrorBoundary>} />
                   <Route path="/forgot-password" element={<ErrorBoundary><ForgotPassword /></ErrorBoundary>} />
-                  <Route path="/reset-password/:token" element={<ErrorBoundary><ResetPassword /></ErrorBoundary>} />
+                  <Route path="/reset-password" element={<ErrorBoundary><ResetPassword /></ErrorBoundary>} />
                   <Route path="/lawyers" element={<ErrorBoundary><LawyerSearch /></ErrorBoundary>} />
                   <Route path="/find-lawyers" element={<Navigate to="/lawyers" replace />} />
                   <Route path="/lawyers/:slug" element={<ErrorBoundary><PublicLawyerProfile /></ErrorBoundary>} />
@@ -160,7 +187,7 @@ function App() {
                   
                   <Route path="/book-appointment/:lawyerId?" element={<BookAppointmentRedirect />} />
                   <Route path="/feedback" element={<Navigate to="/lawyers" replace />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
+                  <Route path="*" element={<ErrorBoundary><NotFoundPage /></ErrorBoundary>} />
                 </Route>
 
                 {/* ZONE 2: PORTAL ZONE (Wrapped in DashboardLayout: sidebar + content ONLY, NO Navbar, NO Footer) */}
@@ -213,16 +240,16 @@ function App() {
                       </ErrorBoundary>
                     </ProtectedRoute>
                   }>
-                    <Route index element={<AdminOverview />} />
-                    <Route path="users" element={<UsersManagement />} />
-                    <Route path="lawyers" element={<LawyersManagement />} />
-                    <Route path="verifications" element={<LawyerVerifications />} />
-                    <Route path="client-verifications" element={<ClientVerifications />} />
-                    <Route path="categories" element={<CategoryManagement />} />
-                    <Route path="jobs" element={<JobsManagement />} />
-                    <Route path="reviews" element={<FlaggedReviews />} />
-                    <Route path="notifications" element={<AdminNotifications />} />
-                    <Route path="settings" element={<AdminSettings />} />
+                    <Route index element={<ErrorBoundary><AdminOverview /></ErrorBoundary>} />
+                    <Route path="users" element={<ErrorBoundary><UsersManagement /></ErrorBoundary>} />
+                    <Route path="lawyers" element={<ErrorBoundary><LawyersManagement /></ErrorBoundary>} />
+                    <Route path="verifications" element={<ErrorBoundary><LawyerVerifications /></ErrorBoundary>} />
+                    <Route path="client-verifications" element={<ErrorBoundary><ClientVerifications /></ErrorBoundary>} />
+                    <Route path="categories" element={<ErrorBoundary><CategoryManagement /></ErrorBoundary>} />
+                    <Route path="jobs" element={<ErrorBoundary><JobsManagement /></ErrorBoundary>} />
+                    <Route path="reviews" element={<ErrorBoundary><FlaggedReviews /></ErrorBoundary>} />
+                    <Route path="notifications" element={<ErrorBoundary><AdminNotifications /></ErrorBoundary>} />
+                    <Route path="settings" element={<ErrorBoundary><AdminSettings /></ErrorBoundary>} />
                   </Route>
 
                   {/* Lawyer Suite Routes */}
@@ -232,24 +259,24 @@ function App() {
                     </ProtectedRoute>
                   }>
                     <Route index element={<Navigate to="dashboard" replace />} />
-                    <Route path="dashboard" element={<LawyerDashboardView />} />
-                    <Route path="communication" element={<LawyerCommunicationPortal />} />
-                    <Route path="profile/basic" element={<LawyerBasicInfoView />} />
-                    <Route path="profile/credentials" element={<LawyerCredentialsView />} />
-                    <Route path="profile/verifications" element={<LawyerVerificationView />} />
-                    <Route path="schedule/availability" element={<LawyerAvailabilityView />} />
-                    <Route path="schedule/settings" element={<ConsultationSettings />} />
-                    <Route path="portfolio" element={<LawyerPortfolioView />} />
-                    <Route path="analytics" element={<LawyerAnalyticsView />} />
-                    <Route path="reviews" element={<FeedbackRatings standalone={true} />} />
-                    <Route path="cases" element={<LawyerCasesView />} />
-                    <Route path="cases/:caseId" element={<LawyerCasesView />} />
-                    <Route path="proposals" element={<LawyerProposalsView />} />
-                    <Route path="appointments" element={<LawyerAppointmentsView />} />
-                    <Route path="contracts" element={<LawyerContractsView />} />
-                    <Route path="billing" element={<LawyerBillingView />} />
-                    <Route path="notifications" element={<LawyerNotificationsView />} />
-                    <Route path="privacy" element={<LawyerPrivacyView />} />
+                    <Route path="dashboard" element={<ErrorBoundary><LawyerDashboardView /></ErrorBoundary>} />
+                    <Route path="communication" element={<ErrorBoundary><LawyerCommunicationPortal /></ErrorBoundary>} />
+                    <Route path="profile/basic" element={<ErrorBoundary><LawyerBasicInfoView /></ErrorBoundary>} />
+                    <Route path="profile/credentials" element={<ErrorBoundary><LawyerCredentialsView /></ErrorBoundary>} />
+                    <Route path="profile/verifications" element={<ErrorBoundary><LawyerVerificationView /></ErrorBoundary>} />
+                    <Route path="schedule/availability" element={<ErrorBoundary><LawyerAvailabilityView /></ErrorBoundary>} />
+                    <Route path="schedule/settings" element={<ErrorBoundary><ConsultationSettings /></ErrorBoundary>} />
+                    <Route path="portfolio" element={<ErrorBoundary><LawyerPortfolioView /></ErrorBoundary>} />
+                    <Route path="analytics" element={<ErrorBoundary><LawyerAnalyticsView /></ErrorBoundary>} />
+                    <Route path="reviews" element={<ErrorBoundary><FeedbackRatings standalone={true} /></ErrorBoundary>} />
+                    <Route path="cases" element={<ErrorBoundary><LawyerCasesView /></ErrorBoundary>} />
+                    <Route path="cases/:caseId" element={<ErrorBoundary><LawyerCasesView /></ErrorBoundary>} />
+                    <Route path="proposals" element={<ErrorBoundary><LawyerProposalsView /></ErrorBoundary>} />
+                    <Route path="appointments" element={<ErrorBoundary><LawyerAppointmentsView /></ErrorBoundary>} />
+                    <Route path="contracts" element={<ErrorBoundary><LawyerContractsView /></ErrorBoundary>} />
+                    <Route path="billing" element={<ErrorBoundary><LawyerBillingView /></ErrorBoundary>} />
+                    <Route path="notifications" element={<ErrorBoundary><LawyerNotificationsView /></ErrorBoundary>} />
+                    <Route path="privacy" element={<ErrorBoundary><LawyerPrivacyView /></ErrorBoundary>} />
                   </Route>
                 </Route>
 

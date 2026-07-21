@@ -249,7 +249,44 @@ const LawyerBillingView = () => {
         <div className="mb-8 animate-fadeIn">
           <h3 className="font-serif text-2xl font-bold text-[#041635] mb-4">Payout Requests History</h3>
           <div className="bg-white rounded-lg border border-[#D0D7E3] shadow-sm overflow-hidden">
-            <table className="w-full text-left">
+            {/* Mobile Card Stack (< 768px) */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {payoutRequests.map(pr => (
+                <div key={`mobile-pr-${pr.id}`} className="p-4 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-400 uppercase">
+                      {new Date(pr.requested_at).toLocaleDateString()}
+                    </span>
+                    <span className={`px-2.5 py-0.5 text-[10px] font-bold uppercase rounded-full ${
+                      pr.status === 'processed' || pr.status === 'approved'
+                        ? 'bg-green-100 text-green-800'
+                        : pr.status === 'rejected'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-orange-100 text-orange-800'
+                    }`}>
+                      {pr.status}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-[#041635]">{pr.bank_details?.method || 'Bank Transfer'}</div>
+                    <div className="text-xs text-gray-500 font-mono mt-0.5">
+                      {pr.bank_details?.bank_name ? `${pr.bank_details.bank_name} - ` : ''}
+                      {pr.bank_details?.account_number || pr.bank_details?.account}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-1 border-t border-gray-50 text-xs">
+                    <span className="text-gray-500">Amount:</span>
+                    <span className="font-bold text-[#1E6B4A] text-sm">BDT {Number(pr.amount || 0).toLocaleString()}</span>
+                  </div>
+                  {pr.notes && (
+                    <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded-lg">{pr.notes}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table (>= 768px) */}
+            <table className="hidden md:table w-full text-left">
               <thead className="bg-gray-50 border-b border-[#D0D7E3]">
                 <tr>
                   <th className="p-4 text-sm font-bold text-gray-600">Requested Date</th>
@@ -303,7 +340,36 @@ const LawyerBillingView = () => {
           </div>
         ) : (
           <div className="bg-white rounded-lg border border-[#D0D7E3] shadow-sm overflow-hidden">
-            <table className="w-full text-left">
+            {/* Mobile Card Stack (< 768px) */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {transactions.map(tx => (
+                <div key={`mobile-tx-${tx.id}`} className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-400">
+                      {new Date(tx.created_at).toLocaleDateString()}
+                    </span>
+                    <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full ${tx.status === 'completed' || tx.status === 'released' || tx.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
+                      {tx.status}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm text-[#041635]">{tx.client_name}</div>
+                    {tx.reference_number && <div className="text-[11px] text-gray-400 font-mono mt-0.5">{tx.reference_number}</div>}
+                  </div>
+                  <div className="flex items-center justify-between pt-1.5 border-t border-gray-50 text-xs">
+                    <div className="text-gray-500">
+                      Gross: <span className="font-semibold text-gray-700">BDT {Number(tx.amount || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="font-bold text-green-700 text-sm">
+                      Net: BDT {Number(tx.lawyer_payout || tx.amount || 0).toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table (>= 768px) */}
+            <table className="hidden md:table w-full text-left">
               <thead className="bg-gray-50 border-b border-[#D0D7E3]">
                 <tr>
                   <th className="p-4 text-sm font-bold text-gray-600">Date</th>

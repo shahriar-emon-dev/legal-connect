@@ -79,4 +79,59 @@ describe('ProtectedRoute', () => {
     });
     expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
   });
+
+  it('shows a loading state instead of redirecting while auth is resolving', () => {
+    renderWithAuth({
+      user: null,
+      loading: true,
+      isAuthenticated: false,
+    });
+
+    expect(screen.queryByText('Login Page Redirected')).not.toBeInTheDocument();
+    expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
+  });
+});
+
+describe('ProtectedRoute with role restrictions', () => {
+  const renderWithRoles = (authValue, roles) =>
+    render(
+      <AuthContext.Provider value={authValue}>
+        <MemoryRouter initialEntries={['/protected']}>
+          <Routes>
+            <Route
+              path="/protected"
+              element={
+                <ProtectedRoute roles={roles}>
+                  <div>Protected Content</div>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/" element={<div>Home Redirected</div>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>
+    );
+
+  it('renders children when the user role is in the allowed list', async () => {
+    renderWithRoles(
+      { user: { id: 1, user_type: 'lawyer' }, loading: false, isAuthenticated: true },
+      ['lawyer']
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Protected Content')).toBeInTheDocument();
+    });
+  });
+
+  it('redirects to home when the user role is not in the allowed list', async () => {
+    renderWithRoles(
+      { user: { id: 1, user_type: 'client' }, loading: false, isAuthenticated: true },
+      ['lawyer']
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Home Redirected')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
+  });
 });

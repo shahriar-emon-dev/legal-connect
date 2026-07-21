@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { realtimeSync } from '../../services/realtimeSync.service';
 import toast from 'react-hot-toast';
 
 const LawyerContractsView = () => {

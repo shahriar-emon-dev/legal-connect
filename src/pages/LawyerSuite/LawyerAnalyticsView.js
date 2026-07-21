@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { useAuth } from '../../context/AuthContext';
 
 const LawyerAnalyticsView = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('30days');
@@ -221,7 +223,7 @@ const LawyerAnalyticsView = () => {
               Complete your profile to increase visibility in search results and attract more clients.
             </p>
             <button
-              onClick={() => window.location.href = '/lawyer-suite/profile'}
+              onClick={() => navigate('/lawyer-suite/profile')}
               className="w-full py-3 rounded-lg border border-secondary-fixed text-secondary-fixed font-bold hover:bg-secondary-fixed hover:text-on-secondary-fixed transition-colors"
             >
               Improve Profile

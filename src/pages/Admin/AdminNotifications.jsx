@@ -242,7 +242,80 @@ const AdminNotifications = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              {/* Mobile Card Stack (< 768px) */}
+              <div className="md:hidden divide-y divide-gray-100">
+                {filteredPayouts.map(p => (
+                  <div key={`mobile-admin-pr-${p.id}`} className="p-4 space-y-3 bg-white">
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                      <div>
+                        <div className="font-bold text-sm text-[#041635]">{p.lawyer?.name || 'Unknown Advocate'}</div>
+                        <div className="text-xs text-gray-400">{p.lawyer?.email}</div>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                        p.status === 'processed' ? 'bg-green-100 text-green-800' :
+                        p.status === 'approved' ? 'bg-blue-100 text-blue-800' :
+                        p.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                        'bg-amber-100 text-amber-800'
+                      }`}>
+                        {p.status}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">Requested Date:</span>
+                      <span className="font-medium text-gray-700">{new Date(p.requested_at).toLocaleDateString()}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">Amount:</span>
+                      <span className="font-bold text-sm text-[#1E6B4A]">BDT {Number(p.amount || 0).toLocaleString()}</span>
+                    </div>
+
+                    <div className="bg-gray-50 p-2.5 rounded-xl text-xs space-y-1">
+                      <div className="font-bold text-gray-700">{p.bank_details?.method || 'Bank Transfer'}</div>
+                      <div className="font-mono text-gray-600">
+                        {p.bank_details?.bank_name ? `${p.bank_details.bank_name} - ` : ''}
+                        {p.bank_details?.account_number || p.bank_details?.account || 'N/A'}
+                      </div>
+                      {p.notes && <div className="text-gray-500 italic pt-1 border-t border-gray-200 mt-1">"{p.notes}"</div>}
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-end gap-2 border-t border-gray-100">
+                      {p.status === 'pending' ? (
+                        <>
+                          <button
+                            onClick={() => handleUpdatePayoutStatus(p.id, 'approved')}
+                            disabled={processingId === p.id}
+                            className="flex-1 py-2 px-3 bg-[#1E6B4A] text-white font-bold text-xs rounded-xl hover:bg-[#155338] transition-colors shadow-xs disabled:opacity-50"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => setSelectedRejectId(p.id)}
+                            disabled={processingId === p.id}
+                            className="flex-1 py-2 px-3 bg-red-100 text-red-700 font-bold text-xs rounded-xl hover:bg-red-200 transition-colors disabled:opacity-50"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      ) : p.status === 'approved' ? (
+                        <button
+                          onClick={() => handleUpdatePayoutStatus(p.id, 'processed')}
+                          disabled={processingId === p.id}
+                          className="w-full py-2 px-3 bg-green-600 text-white font-bold text-xs rounded-xl hover:bg-green-700 transition-colors shadow-xs disabled:opacity-50"
+                        >
+                          Complete Payout
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">No further actions</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table (>= 768px) */}
+              <table className="hidden md:table w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50/80 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
                     <th className="p-4">Requested At</th>
@@ -258,36 +331,30 @@ const AdminNotifications = () => {
                     <tr key={p.id} className="hover:bg-gray-50/60 transition-colors">
                       <td className="p-4 text-gray-600 whitespace-nowrap">
                         <div className="font-medium text-gray-900">{new Date(p.requested_at).toLocaleDateString()}</div>
-                        <div className="text-[11px] text-gray-400">{new Date(p.requested_at).toLocaleTimeString()}</div>
+                        <div className="text-xs text-gray-400">{new Date(p.requested_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                       </td>
                       <td className="p-4">
-                        <div className="font-bold text-[#041635]">{p.lawyer?.name || 'Unknown Lawyer'}</div>
-                        <div className="text-xs text-gray-500">{p.lawyer?.email || p.lawyer_id}</div>
-                        {p.lawyer?.phone && <div className="text-[11px] text-gray-400 font-mono">{p.lawyer.phone}</div>}
+                        <div className="font-bold text-[#041635]">{p.lawyer?.name || 'Unknown Advocate'}</div>
+                        <div className="text-xs text-gray-500">{p.lawyer?.email}</div>
                       </td>
-                      <td className="p-4 whitespace-nowrap">
-                        <div className="font-serif text-lg font-bold text-[#1E6B4A]">
-                          BDT {Number(p.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </div>
-                        {p.notes && <div className="text-xs text-gray-500 italic max-w-xs truncate">Note: "{p.notes}"</div>}
+                      <td className="p-4 font-bold text-lg text-[#1E6B4A] whitespace-nowrap">
+                        BDT {Number(p.amount || 0).toLocaleString()}
                       </td>
                       <td className="p-4">
-                        <div className="font-bold text-gray-800">{p.bank_details?.method || 'Bank Transfer'}</div>
-                        <div className="text-xs font-mono text-gray-600 bg-gray-100 px-2 py-0.5 rounded inline-block mt-1">
+                        <div className="font-bold text-gray-800 text-xs uppercase tracking-wide">{p.bank_details?.method || 'Bank Transfer'}</div>
+                        <div className="text-xs font-mono text-gray-600 mt-0.5">
+                          {p.bank_details?.bank_name ? `${p.bank_details.bank_name} - ` : ''}
                           {p.bank_details?.account_number || p.bank_details?.account || 'N/A'}
                         </div>
-                        {p.bank_details?.bank_name && (
-                          <div className="text-[11px] text-gray-500 mt-0.5">{p.bank_details.bank_name}</div>
-                        )}
+                        {p.notes && <div className="text-xs text-gray-400 italic mt-1 truncate max-w-xs" title={p.notes}>"{p.notes}"</div>}
                       </td>
                       <td className="p-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide inline-flex items-center gap-1 ${
-                          p.status === 'processed' ? 'bg-green-100 text-green-800 border border-green-200' :
-                          p.status === 'approved' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
-                          p.status === 'rejected' ? 'bg-red-100 text-red-800 border border-red-200' :
-                          'bg-amber-100 text-amber-800 border border-amber-200 animate-pulse'
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block ${
+                          p.status === 'processed' ? 'bg-green-100 text-green-800' :
+                          p.status === 'approved' ? 'bg-blue-100 text-blue-800' :
+                          p.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                          'bg-amber-100 text-amber-800'
                         }`}>
-                          <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
                           {p.status}
                         </span>
                       </td>
@@ -297,13 +364,11 @@ const AdminNotifications = () => {
                             <button
                               onClick={() => handleUpdatePayoutStatus(p.id, 'approved')}
                               disabled={processingId === p.id}
-                              className="px-3 py-1.5 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50"
+                              className="px-3 py-1.5 bg-[#1E6B4A] text-white font-bold text-xs rounded-lg hover:bg-[#155338] transition-colors shadow-sm disabled:opacity-50"
                             >
                               Approve
                             </button>
                             <button
-                              onClick={() => handleUpdatePayoutStatus(p.id, 'processed')}
-                              disabled={processingId === p.id}
                               className="px-3 py-1.5 bg-green-600 text-white font-bold text-xs rounded-lg hover:bg-green-700 transition-colors shadow-sm disabled:opacity-50"
                             >
                               Mark Processed

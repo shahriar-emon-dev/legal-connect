@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { realtimeSync } from '../../services/realtimeSync.service';
@@ -36,14 +36,25 @@ const CATEGORY_COLORS = {
 const JobBoard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All Categories');
-  const [sortBy, setSortBy] = useState('newest');
-  const [urgentOnly, setUrgentOnly] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('cat') || 'All Categories');
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
+  const [urgentOnly, setUrgentOnly] = useState(searchParams.get('urgent') === 'true');
   const [isVerifiedLawyer, setIsVerifiedLawyer] = useState(false);
+
+  // Sync state to URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (searchTerm.trim()) params.set('q', searchTerm.trim());
+    if (selectedCategory && selectedCategory !== 'All Categories') params.set('cat', selectedCategory);
+    if (sortBy && sortBy !== 'newest') params.set('sort', sortBy);
+    if (urgentOnly) params.set('urgent', 'true');
+    setSearchParams(params, { replace: true });
+  }, [searchTerm, selectedCategory, sortBy, urgentOnly, setSearchParams]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -63,7 +74,7 @@ const JobBoard = () => {
   useEffect(() => {
     fetchJobs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory, sortBy, urgentOnly]);
+  }, [selectedCategory, sortBy, urgentOnly, searchTerm]);
 
   // Real-time subscription for live job board updates
   useEffect(() => {

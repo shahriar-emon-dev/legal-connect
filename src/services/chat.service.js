@@ -3,6 +3,13 @@ import { supabase } from './supabase';
 /**
  * Verify the current user is a participant in the contract that owns this workspace.
  * Returns { allowed: boolean, contractId: number | null }
+ *
+ * Audit #38 recommended removing this as redundant with RLS. It is NOT
+ * redundant: the messages RLS policy's WITH CHECK matches workspace-based
+ * inserts only via `is_owner(sender_id)` (conversation_id is NULL on this
+ * code path), so without this check any authenticated user could insert into
+ * any workspace_id by setting sender_id to their own id. See the fix + full
+ * writeup in sql/67_p2_medium_priority_hardening.sql. Keep this check.
  */
 async function verifyParticipant(workspaceId, userId) {
   if (!workspaceId || !userId) return { allowed: false, contractId: null };

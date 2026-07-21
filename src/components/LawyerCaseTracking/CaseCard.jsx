@@ -161,13 +161,13 @@ const CaseCard = ({
       </div>
 
       {/* Action Buttons Toolbar */}
-      <div className="pt-3 border-t border-border-subtle flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="pt-3 border-t border-border-subtle flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
           {/* View Details */}
           <button
             type="button"
             onClick={() => onViewDetails && onViewDetails(caseItem, 'details')}
-            className="px-3.5 py-2 rounded-xl bg-navy-primary hover:bg-navy-secondary text-white text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
+            className="col-span-2 sm:col-span-1 min-h-[44px] px-3.5 py-2 rounded-xl bg-navy-primary hover:bg-navy-secondary text-white text-xs font-bold transition shadow-2xs flex items-center justify-center gap-1.5"
           >
             <span className="material-symbols-outlined text-sm">visibility</span>
             <span>View Details</span>
@@ -177,7 +177,7 @@ const CaseCard = ({
           <button
             type="button"
             onClick={() => onOpenTimeline && onOpenTimeline(caseItem)}
-            className="px-3 py-2 rounded-xl bg-bg-light hover:bg-gray-200 text-navy-primary text-xs font-bold transition border border-border-subtle flex items-center gap-1"
+            className="min-h-[44px] px-3 py-2 rounded-xl bg-bg-light hover:bg-gray-200 text-navy-primary text-xs font-bold transition border border-border-subtle flex items-center justify-center gap-1"
           >
             <span className="material-symbols-outlined text-sm">timeline</span>
             <span>Timeline</span>
@@ -187,7 +187,7 @@ const CaseCard = ({
           <button
             type="button"
             onClick={() => onOpenDocuments && onOpenDocuments(caseItem)}
-            className="px-3 py-2 rounded-xl bg-bg-light hover:bg-gray-200 text-navy-primary text-xs font-bold transition border border-border-subtle flex items-center gap-1"
+            className="min-h-[44px] px-3 py-2 rounded-xl bg-bg-light hover:bg-gray-200 text-navy-primary text-xs font-bold transition border border-border-subtle flex items-center justify-center gap-1"
           >
             <span className="material-symbols-outlined text-sm">folder</span>
             <span>Documents</span>
@@ -197,7 +197,7 @@ const CaseCard = ({
           <button
             type="button"
             onClick={() => onOpenInvoice && onOpenInvoice(caseItem)}
-            className="px-3 py-2 rounded-xl bg-bg-light hover:bg-gray-200 text-navy-primary text-xs font-bold transition border border-border-subtle flex items-center gap-1"
+            className="min-h-[44px] px-3 py-2 rounded-xl bg-bg-light hover:bg-gray-200 text-navy-primary text-xs font-bold transition border border-border-subtle flex items-center justify-center gap-1"
           >
             <span className="material-symbols-outlined text-sm">receipt_long</span>
             <span>Invoice</span>
@@ -207,7 +207,7 @@ const CaseCard = ({
           <button
             type="button"
             onClick={() => onOpenMessages && onOpenMessages(caseItem)}
-            className="px-3 py-2 rounded-xl bg-bg-light hover:bg-gray-200 text-navy-primary text-xs font-bold transition border border-border-subtle flex items-center gap-1.5 relative"
+            className="min-h-[44px] px-3 py-2 rounded-xl bg-bg-light hover:bg-gray-200 text-navy-primary text-xs font-bold transition border border-border-subtle flex items-center justify-center gap-1.5 relative"
           >
             <span className="material-symbols-outlined text-sm">chat</span>
             <span>Messages</span>
@@ -221,11 +221,11 @@ const CaseCard = ({
 
         {/* Active Case Actions Toolbar */}
         {isActiveOrProgress && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
             <button
               type="button"
               onClick={() => onUpdateProgress && onUpdateProgress(caseItem)}
-              className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
+              className="min-h-[44px] px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition shadow-2xs flex items-center justify-center gap-1.5"
               title="Log new progress update for client timeline"
             >
               <span className="material-symbols-outlined text-sm">bolt</span>
@@ -235,7 +235,7 @@ const CaseCard = ({
             <button
               type="button"
               onClick={() => onSubmitDelivery && onSubmitDelivery(caseItem)}
-              className="px-3 py-2 rounded-xl bg-navy-primary hover:bg-navy-secondary text-white text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
+              className="min-h-[44px] px-3 py-2 rounded-xl bg-navy-primary hover:bg-navy-secondary text-white text-xs font-bold transition shadow-2xs flex items-center justify-center gap-1.5"
               title="Submit deliverables & mark work ready for client review"
             >
               <span className="material-symbols-outlined text-sm">publish</span>
@@ -246,7 +246,7 @@ const CaseCard = ({
               type="button"
               onClick={() => onMarkComplete && onMarkComplete(caseItem)}
               disabled={isCompleting}
-              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-2xs flex items-center gap-1.5"
+              className="min-h-[44px] px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-2xs flex items-center justify-center gap-1.5"
               title="Mark this case as successfully resolved/completed"
             >
               <span className="material-symbols-outlined text-sm">check_circle</span>
