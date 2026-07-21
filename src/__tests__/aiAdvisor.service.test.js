@@ -1,10 +1,21 @@
 import { detectLegalCategory, extractLocationAndNeed } from '../services/aiAdvisor.service';
 
-// Pure-logic tests for the AI Advisor's keyword-based routing — no Supabase
-// network calls involved, so no mocking is needed. These functions decide
-// which practice area / lawyers get surfaced to the user, so a regression
-// here silently misroutes real legal queries (audit #49: no coverage of
-// critical business logic).
+// Pure-logic tests for the AI Advisor's keyword-based routing. These functions
+// don't touch Supabase, but aiAdvisor.service.js imports the client at module
+// scope (which now throws fast if REACT_APP_SUPABASE_URL/KEY aren't set — see
+// src/services/supabase.js), so mock it out the same way ProtectedRoute.test.jsx
+// does. Without this, the suite fails to load in any environment that doesn't
+// have real Supabase credentials configured (e.g. GitHub Actions CI).
+jest.mock('../services/supabase', () => ({
+  supabase: {
+    from: jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+    }),
+    rpc: jest.fn().mockResolvedValue({ data: null, error: null }),
+  },
+}));
 
 describe('detectLegalCategory', () => {
   it('detects Family Law from divorce-related keywords', () => {
