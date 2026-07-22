@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../services/supabase';
+import { useAuth } from '../../context/AuthContext';
 
 const Contact = () => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -127,14 +129,19 @@ const Contact = () => {
         phone: formData.phone.trim() || null,
         subject: formData.subject,
         message: formData.message.trim(),
-        status: 'unread',
+        status: 'new',
         created_at: new Date().toISOString(),
-        attachment_url: attachment_url || null
+        attachment_url: attachment_url || null,
+        // Support-ticket enrichment (columns added in migration 70).
+        user_id: user?.id || null,
+        is_guest: !user?.id,
+        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null
       };
 
       let res = await supabase.from('contact_inquiries').insert([inquiryObj]);
       if (res.error) {
-        // Fallback: if 'phone' column doesn't exist in contact_inquiries, embed phone in message
+        // Fallback for a pre-migration schema (only the original columns exist):
+        // embed phone in the message body so it isn't lost.
         const fallbackMessage = formData.phone.trim()
           ? `${formData.message.trim()}\n\n[Contact Phone: ${formData.phone.trim()}]`
           : formData.message.trim();

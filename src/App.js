@@ -55,6 +55,7 @@ const JobsManagement = React.lazy(() => import('./pages/Admin/JobsManagement'));
 const FlaggedReviews = React.lazy(() => import('./pages/Admin/FlaggedReviews'));
 const AdminSettings = React.lazy(() => import('./pages/Admin/AdminSettings'));
 const AdminNotifications = React.lazy(() => import('./pages/Admin/AdminNotifications'));
+const SupportMessages = React.lazy(() => import('./pages/Admin/SupportMessages'));
 
 const LawyerDashboardView = React.lazy(() => import('./pages/LawyerSuite/LawyerDashboardView'));
 const LawyerBasicInfoView = React.lazy(() => import('./pages/LawyerSuite/LawyerBasicInfoView'));
@@ -248,6 +249,7 @@ function App() {
                     <Route path="categories" element={<ErrorBoundary><CategoryManagement /></ErrorBoundary>} />
                     <Route path="jobs" element={<ErrorBoundary><JobsManagement /></ErrorBoundary>} />
                     <Route path="reviews" element={<ErrorBoundary><FlaggedReviews /></ErrorBoundary>} />
+                    <Route path="messages" element={<ErrorBoundary><SupportMessages /></ErrorBoundary>} />
                     <Route path="notifications" element={<ErrorBoundary><AdminNotifications /></ErrorBoundary>} />
                     <Route path="settings" element={<ErrorBoundary><AdminSettings /></ErrorBoundary>} />
                   </Route>
