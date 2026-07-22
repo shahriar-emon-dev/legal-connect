@@ -1,7 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase, isMissingFunctionError } from '../../services/supabase';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+
+const BLOG_IMAGE_BUCKET = 'blog-images';
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
 
 const STATUSES = [
   { key: 'draft', label: 'Draft', color: 'bg-gray-200 text-gray-600' },
@@ -31,8 +35,10 @@ const BlogManagement = () => {
 
   const [editing, setEditing] = useState(null); // form object or null
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [showCats, setShowCats] = useState(false);
   const [newCat, setNewCat] = useState('');
+  const fileInputRef = useRef(null);
 
   const fetchPosts = useCallback(async () => {
     try {
@@ -151,6 +157,40 @@ const BlogManagement = () => {
       console.error(err);
       toast.error(err.message || 'Save failed. Ensure migration 71 is applied.');
     } finally { setBusy(false); }
+  };
+
+  const uploadFeaturedImage = async (file) => {
+    if (!file) return;
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast.error('Please choose a PNG, JPEG, WebP, or GIF image.');
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast.error('Image is larger than 5 MB. Please pick a smaller file.');
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `posts/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from(BLOG_IMAGE_BUCKET)
+        .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      // Public bucket → stable, non-expiring URL.
+      const { data: pub } = supabase.storage.from(BLOG_IMAGE_BUCKET).getPublicUrl(path);
+      if (!pub?.publicUrl) throw new Error('Could not resolve uploaded image URL.');
+      setEditing((prev) => ({ ...prev, featured_image_url: pub.publicUrl }));
+      toast.success('Image uploaded.');
+    } catch (err) {
+      console.error('[BlogManagement] image upload error:', err);
+      toast.error(err.message?.includes('Bucket not found')
+        ? 'Upload bucket missing — apply migration 72 (blog-images bucket).'
+        : (err.message || 'Image upload failed.'));
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const quickPatch = async (p, patch, msg) => {
@@ -322,7 +362,27 @@ const BlogManagement = () => {
                 </Field>
               </div>
               <Field label="Tags (comma-separated)"><input value={editing.tags} onChange={(e) => setEditing({ ...editing, tags: e.target.value })} placeholder="tax, filing, deadline" className="ipt" /></Field>
-              <Field label="Featured image URL"><input value={editing.featured_image_url} onChange={(e) => setEditing({ ...editing, featured_image_url: e.target.value })} placeholder="https://…" className="ipt" /></Field>
+              <Field label="Featured image">
+                <div className="space-y-2">
+                  {editing.featured_image_url ? (
+                    <div className="relative inline-block">
+                      <img src={editing.featured_image_url} alt="Featured preview" className="h-32 w-auto rounded-lg border border-border-subtle object-cover" />
+                      <button type="button" onClick={() => setEditing({ ...editing, featured_image_url: '' })} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-sm leading-none" title="Remove image">×</button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => !uploading && fileInputRef.current?.click()}
+                      className={`flex flex-col items-center justify-center h-32 rounded-lg border-2 border-dashed border-border-subtle text-gray-400 ${uploading ? 'opacity-60' : 'cursor-pointer hover:border-navy-primary/40 hover:text-navy-primary'}`}
+                    >
+                      <span className="material-symbols-outlined text-2xl">{uploading ? 'progress_activity' : 'add_photo_alternate'}</span>
+                      <span className="text-xs font-semibold mt-1">{uploading ? 'Uploading…' : 'Upload image from device'}</span>
+                      <span className="text-[10px]">PNG, JPEG, WebP or GIF · up to 5 MB</span>
+                    </div>
+                  )}
+                  <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="hidden" onChange={(e) => uploadFeaturedImage(e.target.files?.[0])} />
+                  <input value={editing.featured_image_url} onChange={(e) => setEditing({ ...editing, featured_image_url: e.target.value })} placeholder="…or paste an image URL" className="ipt" />
+                </div>
+              </Field>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Publish / schedule date"><input type="datetime-local" value={editing.published_at} onChange={(e) => setEditing({ ...editing, published_at: e.target.value })} className="ipt" /></Field>
                 <div className="flex items-end gap-4 pb-2">
@@ -339,8 +399,8 @@ const BlogManagement = () => {
                 </div>
               </details>
               <div className="flex gap-2 pt-2 border-t border-border-subtle sticky bottom-0 bg-white pb-1">
-                <button onClick={() => save('draft')} disabled={busy} className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-bold disabled:opacity-50">Save Draft</button>
-                <button onClick={() => save('published')} disabled={busy} className="px-4 py-2.5 bg-navy-primary text-white rounded-lg text-sm font-bold disabled:opacity-50">{busy ? 'Saving…' : 'Publish'}</button>
+                <button onClick={() => save('draft')} disabled={busy || uploading} className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-bold disabled:opacity-50">Save Draft</button>
+                <button onClick={() => save('published')} disabled={busy || uploading} className="px-4 py-2.5 bg-navy-primary text-white rounded-lg text-sm font-bold disabled:opacity-50">{busy ? 'Saving…' : 'Publish'}</button>
                 <button onClick={() => setEditing(null)} disabled={busy} className="ml-auto px-4 py-2.5 text-gray-500 text-sm font-semibold">Cancel</button>
               </div>
             </div>
